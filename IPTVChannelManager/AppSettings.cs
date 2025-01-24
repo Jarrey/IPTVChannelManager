@@ -4,20 +4,15 @@ namespace IPTVChannelManager
 {
     public sealed class AppSettings : AbstractSettings
     {
+        #region Singleton
         private static AppSettings _instance;
         public static AppSettings Instance => _instance ??= new AppSettings();
         private AppSettings()
         {
         }
+        #endregion Singleton
 
         public override string Name => nameof(AppSettings);
-        #region Non-persistenced Settings
-        #endregion Non-persistenced Settings
-
-        public override void LoadSetting(string scope = null)
-        {
-            base.LoadSetting(scope);
-        }
 
         #region Settings
         public const string ChannelGroups = nameof(ChannelGroups);
