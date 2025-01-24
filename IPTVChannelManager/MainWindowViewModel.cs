@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using IPTVChannelManager.Common;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -41,12 +42,7 @@ namespace IPTVChannelManager
             ExportToM3uCommand = new DelegateCommand(ExportToM3u);
             PlayCommand = new DelegateCommand<Channel>(Play);
             AddAllCommand = new DelegateCommand(AddAllChannels);
-        }
-
-        private void SettingChanged(object? sender, (string, object) e)
-        {
-            ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups)?.Split(Constants.Spliter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            CustomHost = AppSettings.Instance.Get(AppSettings.CustomHost);
+            RemoveAllCommand = new DelegateCommand(RemoveAllChannels);
         }
 
         #region Properties
@@ -101,12 +97,19 @@ namespace IPTVChannelManager
         public ICommand AddCommand { get; }
         public ICommand AddAllCommand { get; }
         public ICommand RemoveCommand { get; }
+        public ICommand RemoveAllCommand { get; }
         public ICommand ExportToTxtCommand { get; }
         public ICommand ExportToM3uCommand { get; }
         public ICommand PlayCommand { get; }
         #endregion Commands
 
         #region Methods
+        private void SettingChanged(object? sender, (string, object) e)
+        {
+            ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups)?.Split(Constants.Spliter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            CustomHost = AppSettings.Instance.Get(AppSettings.CustomHost);
+        }
+
         private ObservableCollection<Channel> LoadChannelDB()
         {
             if (File.Exists(DBPath))
@@ -114,7 +117,8 @@ namespace IPTVChannelManager
                 try
                 {
                     List<Channel> channelDB = JsonConvert.DeserializeObject<List<Channel>>(File.ReadAllText(DBPath));
-                    return new ObservableCollection<Channel>(channelDB);
+                    List<string> groupOrder = ChannelGroups.ToList();
+                    return new ObservableCollection<Channel>(channelDB?.OrderBy(c => string.IsNullOrWhiteSpace(c.Group) ? int.MaxValue : groupOrder.IndexOf(c.Group)));
                 }
                 catch (Exception ex)
                 {
@@ -142,7 +146,7 @@ namespace IPTVChannelManager
                 {
                     if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok && File.Exists(openFileDialog.FileName))
                     {
-                        var channels = ImportExportHelper.ImportChannelsFromTxt(File.ReadAllText(openFileDialog.FileName), ProcessCustomHost ? CustomHost : null);
+                        var channels = ImportExportHelper.ImportFromTxt(File.ReadAllText(openFileDialog.FileName), ProcessCustomHost ? CustomHost : null);
                         NewChannels.Clear();
                         foreach (var channel in channels)
                         {
@@ -265,7 +269,7 @@ namespace IPTVChannelManager
 
         private void AddAllChannels()
         {
-            foreach(var channel in NewChannels)
+            foreach (var channel in NewChannels)
             {
                 AddChannel(channel);
             }
@@ -276,6 +280,14 @@ namespace IPTVChannelManager
             if (channel == null) return;
             if (Channels.All(c => c.Url != channel.Url) || !Channels.Contains(channel)) return;
             Channels.Remove(channel);
+        }
+
+        private void RemoveAllChannels()
+        {
+            foreach (var channel in OldChannels)
+            {
+                RemoveChannel(channel);
+            }
         }
 
         public void ShowSetting()
@@ -289,7 +301,7 @@ namespace IPTVChannelManager
             if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
             string playerPath = AppSettings.Instance.Get(AppSettings.PlayerPath);
             if (string.IsNullOrWhiteSpace(playerPath)) return;
-            Process.Start(new ProcessStartInfo(playerPath, ProcessCustomHost ? $"{CustomHost}{channel.Url}" : $"rtp://{channel.Url}"));
+            Process.Start(new ProcessStartInfo(playerPath, ProcessCustomHost ? $"{CustomHost}{channel.Url}" : $"{Constants.DefaultHost}{channel.Url}"));
         }
         #endregion Methods
     }

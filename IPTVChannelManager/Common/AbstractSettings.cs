@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Common
 {
     public interface ISettings
     {

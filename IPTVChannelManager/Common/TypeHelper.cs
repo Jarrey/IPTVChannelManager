@@ -4,14 +4,14 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Common
 {
     public static class TypeHelper
     {
         [Pure]
         public static T PickObj<T>(this object[] objs, int i) where T : class => objs?.Length > i ? objs[i] as T : default;
         [Pure]
-        public static T Pick<T>(this object[] objs, int i) where T : struct => Pick(objs, i, typeof(T));
+        public static T Pick<T>(this object[] objs, int i) where T : struct => objs.Pick(i, typeof(T));
         [Pure]
         public static dynamic Pick(this object[] objs, int i, Type type = null) => objs?.Length > i ? objs[i]?.ConvertTo(type ?? typeof(string)) ?? string.Empty : string.Empty;
 
@@ -28,7 +28,7 @@ namespace IPTVChannelManager
 
         public static bool IsZero(this double? i)
         {
-            return i.HasValue && IsZero(i.Value);
+            return i.HasValue && i.Value.IsZero();
         }
 
         public static bool IsZero(this double i)
@@ -38,7 +38,7 @@ namespace IPTVChannelManager
 
         public static bool IsNotZero(this double? i)
         {
-            return i.HasValue && !IsZero(i.Value);
+            return i.HasValue && !i.Value.IsZero();
         }
 
         public static bool IsValid(this double? value)
@@ -100,10 +100,10 @@ namespace IPTVChannelManager
         #region Double compare
         public static bool IsEquals(this double? d1, double? d2) => d1 != null && d2 != null && d1.Value.IsEquals(d2.Value);
         public static bool IsEquals(this double d1, double d2) => Math.Abs(d1 - d2) < Constants.Epsilon;
-        public static bool MoreThan(this double? d1, double? d2) => !d1.IsEquals(d2) && (d1 > d2);
-        public static bool MoreThan(this double d1, double d2) => !d1.IsEquals(d2) && (d1 > d2);
-        public static bool LessThan(this double? d1, double? d2) => !d1.IsEquals(d2) && (d1 < d2);
-        public static bool LessThan(this double d1, double d2) => !d1.IsEquals(d2) && (d1 < d2);
+        public static bool MoreThan(this double? d1, double? d2) => !d1.IsEquals(d2) && d1 > d2;
+        public static bool MoreThan(this double d1, double d2) => !d1.IsEquals(d2) && d1 > d2;
+        public static bool LessThan(this double? d1, double? d2) => !d1.IsEquals(d2) && d1 < d2;
+        public static bool LessThan(this double d1, double d2) => !d1.IsEquals(d2) && d1 < d2;
         #endregion Double compare
 
         #region Pickup one field value from object

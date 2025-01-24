@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Windows.Input;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Common
 {    //
     // Summary:
     //     Interface that defines if the object instance is active and notifies when the
@@ -84,7 +84,7 @@ namespace IPTVChannelManager
         //     can requery System.Windows.Input.ICommand.CanExecute(System.Object).
         protected virtual void OnCanExecuteChanged()
         {
-            EventHandler handler = this.CanExecuteChanged;
+            EventHandler handler = CanExecuteChanged;
             if (handler == null)
             {
                 return;
@@ -174,7 +174,7 @@ namespace IPTVChannelManager
         //     This raises the Prism.Commands.DelegateCommandBase.IsActiveChanged event.
         protected virtual void OnIsActiveChanged()
         {
-            this.IsActiveChanged?.Invoke(this, EventArgs.Empty);
+            IsActiveChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

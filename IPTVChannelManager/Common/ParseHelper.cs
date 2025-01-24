@@ -2,7 +2,7 @@
 using System;
 using System.Windows;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Common
 {
     public static class ParseHelper
     {
@@ -12,7 +12,7 @@ namespace IPTVChannelManager
 
         public static bool? ToNullableBool(this string value) => boolNullParse(value);
 
-        public static bool? boolNullParse(string value) => !string.IsNullOrWhiteSpace(value) && bool.TryParse(value, out bool result) ? result : (bool?)null;
+        public static bool? boolNullParse(string value) => !string.IsNullOrWhiteSpace(value) && bool.TryParse(value, out bool result) ? result : null;
 
         public static int ToInt(this string value) => intParse(value);
 
@@ -24,7 +24,7 @@ namespace IPTVChannelManager
 
         public static int? ToNullableInt(this string value) => intNullParse(value);
 
-        public static int? intNullParse(string value) => (string.IsNullOrWhiteSpace(value) || !int.TryParse(value, out int result)) ? null : (int?)result;
+        public static int? intNullParse(string value) => string.IsNullOrWhiteSpace(value) || !int.TryParse(value, out int result) ? null : result;
 
         public static long ToLong(this string value) => longParse(value);
 
@@ -40,7 +40,7 @@ namespace IPTVChannelManager
 
         public static double? ToNullableDouble(this string value) => doubleNullParse(value);
 
-        public static double? doubleNullParse(string value) => (string.IsNullOrWhiteSpace(value) || !double.TryParse(value, out double result)) ? null : (double?)result;
+        public static double? doubleNullParse(string value) => string.IsNullOrWhiteSpace(value) || !double.TryParse(value, out double result) ? null : result;
 
         public static DateTime ToDateTime(this string value) => DateTimeParse(value);
 
@@ -57,20 +57,20 @@ namespace IPTVChannelManager
                     int dot = value.LastIndexOf('.');
                     string dotMillisecond = dot > -1 ? value.Substring(dot) : string.Empty;
                     string ms = dotMillisecond.TrimStart('.');
-                    string formattedMillisecond = ms.Length == 2 ? $"0{ms}" : (ms.Length == 1 ? $"00{ms}" : ms);
+                    string formattedMillisecond = ms.Length == 2 ? $"0{ms}" : ms.Length == 1 ? $"00{ms}" : ms;
                     if (!string.IsNullOrEmpty(dotMillisecond))
                     {
                         value = value.Replace(dotMillisecond, $".{formattedMillisecond}");
                     }
                 }
-                return !DateTime.TryParseExact(value, new[] { Constants.DateTimeFormat, Constants.DateFormat, Constants.DateFormatInQuery }, null, System.Globalization.DateTimeStyles.None, out DateTime dateTime) ? @default : (DateTime?)dateTime;
+                return !DateTime.TryParseExact(value, new[] { Constants.DateTimeFormat, Constants.DateFormat, Constants.DateFormatInQuery }, null, System.Globalization.DateTimeStyles.None, out DateTime dateTime) ? @default : dateTime;
             }
             return @default;
         }
 
         public static dynamic ConvertTo<T>(this object value)
         {
-            dynamic result = ConvertTo(value, typeof(T));
+            dynamic result = value.ConvertTo(typeof(T));
             if (result.GetType() != typeof(T))
             {
                 try

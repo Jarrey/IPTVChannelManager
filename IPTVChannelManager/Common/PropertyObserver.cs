@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Common
 {
     //
     // Summary:
@@ -120,7 +120,7 @@ namespace IPTVChannelManager
             {
                 while (enumerator.MoveNext())
                 {
-                    PropertyObserverNode propertyObserverNode4 = (propertyObserverNode2.Next = new PropertyObserverNode(enumerator.Current, _action));
+                    PropertyObserverNode propertyObserverNode4 = propertyObserverNode2.Next = new PropertyObserverNode(enumerator.Current, _action);
                     propertyObserverNode2 = propertyObserverNode4;
                 }
             }

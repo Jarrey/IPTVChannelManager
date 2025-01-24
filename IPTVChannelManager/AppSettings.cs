@@ -1,4 +1,6 @@
-﻿namespace IPTVChannelManager
+﻿using IPTVChannelManager.Common;
+
+namespace IPTVChannelManager
 {
     public sealed class AppSettings : AbstractSettings
     {

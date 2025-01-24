@@ -155,7 +155,7 @@
                             <Run Text="New Channels"/>
                             <Run Text="{Binding NewChannels.Count, Mode=OneWay, StringFormat=({0})}"/>
                         </TextBlock>
-                        <Button Content="&lt;&lt;-" Command="{Binding AddAllCommand}"/>
+                        <Button Content="&lt;&lt;-" Command="{Binding AddAllCommand}" Margin="5 0 2 0" Width="40" Padding="5 0" VerticalContentAlignment="Center"/>
                     </StackPanel>
                 </GroupBox.Header>
                 <DockPanel>
@@ -169,10 +169,13 @@
             </GroupBox>
             <GroupBox Grid.Row="1" Margin="2" BorderThickness="1">
                 <GroupBox.Header>
-                    <TextBlock>
-                        <Run Text="Obsolete Channels"/>
-                        <Run Text="{Binding OldChannels.Count, Mode=OneWay, StringFormat=({0})}"/>
-                    </TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock>
+                            <Run Text="Obsolete Channels"/>
+                            <Run Text="{Binding OldChannels.Count, Mode=OneWay, StringFormat=({0})}"/>
+                        </TextBlock>
+                        <Button Content="-&gt;&gt;" Command="{Binding RemoveAllCommand}" Margin="5 0 2 0" Width="40" Padding="5 0" VerticalContentAlignment="Center"/>
+                    </StackPanel>
                 </GroupBox.Header>
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Background="#AAA" Padding="36 0 0 0">

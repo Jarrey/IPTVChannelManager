@@ -1,4 +1,4 @@
-﻿using System.Windows.Input;
+﻿using IPTVChannelManager.Common;
 
 namespace IPTVChannelManager
 {
@@ -70,9 +70,5 @@ namespace IPTVChannelManager
             }
         }
         #endregion Properties
-
-        #region Commands
-        public ICommand SaveCommand { get; } = new DelegateCommand(() => AppSettings.Instance.SaveSetting());
-        #endregion Commands
     }
 }

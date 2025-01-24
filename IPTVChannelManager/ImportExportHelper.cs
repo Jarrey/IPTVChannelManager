@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace IPTVChannelManager
 {
     public class ImportExportHelper
     {
-        private const string DefaultHost = "rtp://";
-        public static IEnumerable<Channel> ImportChannelsFromTxt(string content, string customHost = null)
+        public static IEnumerable<Channel> ImportFromTxt(string content, string customHost = null)
         {
             using (var reader = new StringReader(content))
             {
@@ -31,7 +28,7 @@ namespace IPTVChannelManager
                     {
                         var name = info[0]?.Trim() ?? string.Empty;
                         var url = info[1]?.Trim() ?? string.Empty;
-                        url = RemoveHost(url, string.IsNullOrWhiteSpace(customHost) ? DefaultHost : customHost);
+                        url = RemoveHost(url, string.IsNullOrWhiteSpace(customHost) ? Constants.DefaultHost : customHost);
                         yield return new Channel(name, url, group ?? string.Empty);
                     }
                 }
@@ -52,7 +49,7 @@ namespace IPTVChannelManager
                 sb.AppendLine($"{group},#genre#");
                 foreach (var channel in channelGroup)
                 {
-                    sb.AppendLine($"{channel.Name},{AddHost(channel.Url, useCustomHost ? customHost : DefaultHost)}");
+                    sb.AppendLine($"{channel.Name},{AddHost(channel.Url, useCustomHost ? customHost : Constants.DefaultHost)}");
                 }
                 sb.AppendLine();
             }
@@ -76,7 +73,7 @@ namespace IPTVChannelManager
                 foreach (var channel in channelGroup)
                 {
                     sb.AppendLine($"#EXTINF:-1 tvg-id=\"{channel.Logo}\" tvg-name=\"{channel.Name}\" tvg-logo=\"{string.Format(logoTemplate, channel.Logo)}\" group-title=\"{group}\",{channel.Name}");
-                    sb.AppendLine($"{AddHost(channel.Url, useCustomHost ? customHost : DefaultHost)}");
+                    sb.AppendLine($"{AddHost(channel.Url, useCustomHost ? customHost : Constants.DefaultHost)}");
                 }
             }
             return sb.ToString();

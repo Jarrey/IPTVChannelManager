@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Resources;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Common
 {
     //
     // Summary:
@@ -184,7 +184,7 @@ namespace IPTVChannelManager
         // Remarks:
         //     Prism.Commands.DelegateCommand`1.CanExecute(`0) will always return true.
         public DelegateCommand(Action<T> executeMethod)
-            : this(executeMethod, (Func<T, bool>)((T o) => true))
+            : this(executeMethod, (o) => true)
         {
         }
 

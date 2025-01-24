@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Common
 {
     //
     // Summary:
@@ -111,7 +111,7 @@ namespace IPTVChannelManager
         //     The PropertyChangedEventArgs
         protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
         {
-            this.PropertyChanged?.Invoke(this, args);
+            PropertyChanged?.Invoke(this, args);
         }
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IPTVChannelManager
+﻿namespace IPTVChannelManager
 {
     public class Constants
     {
@@ -14,6 +8,7 @@ namespace IPTVChannelManager
         public const string DateFormatInQuery = "yyyyMMdd";
         public const double Epsilon = 1e-10;
         public const string Spliter = ",，| ";
+        public const string DefaultHost = "rtp://";
 
         public const string ChannelDB = "channeldb.json";
 
