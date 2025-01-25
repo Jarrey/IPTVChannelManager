@@ -1,12 +1,14 @@
 ﻿using IPTVChannelManager.Common;
 using Newtonsoft.Json;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Web;
 
 namespace IPTVChannelManager
 {
     public class Channel : BindableBase
     {
+        private string _id = "-1";
         private string _name;
         private string _logo;
         private string _url;
@@ -21,6 +23,9 @@ namespace IPTVChannelManager
             Group = group;
             Ignore = false;
         }
+
+        [JsonProperty("id")]
+        public string Id { get => _id; set => SetProperty(ref _id, value); }
 
         [JsonProperty("name")]
         public string Name { get => _name; set => SetProperty(ref _name, value); }

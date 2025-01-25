@@ -24,6 +24,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="40"/>
                         <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="40"/>
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="80"/>
@@ -40,15 +41,16 @@
                         </Image>
                     </Border>
                     <TextBox Grid.Column="1" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Logo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
-                    <TextBox Grid.Column="2" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
-                    <TextBlock Grid.Column="3" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
+                    <TextBox Grid.Column="2" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Id, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
+                    <TextBox Grid.Column="3" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
+                    <TextBlock Grid.Column="4" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
 
-                    <ComboBox Grid.Column="4" VerticalAlignment="Center"
+                    <ComboBox Grid.Column="5" VerticalAlignment="Center"
                               ItemsSource="{Binding DataContext.ChannelGroups, RelativeSource={RelativeSource AncestorType=Window}}" 
                               SelectedItem="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <CheckBox Grid.Column="5" IsChecked="{Binding Ignore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Ignore" VerticalAlignment="Center" Margin="5 0" HorizontalAlignment="Center"/>
-                    <Button Grid.Column="6" Content="Play" VerticalContentAlignment="Center" Padding="5 0" Margin="5 0"
+                    <CheckBox Grid.Column="6" IsChecked="{Binding Ignore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Ignore" VerticalAlignment="Center" Margin="5 0" HorizontalAlignment="Center"/>
+                    <Button Grid.Column="7" Content="Play" VerticalContentAlignment="Center" Padding="5 0" Margin="5 0"
                             Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                             CommandParameter="{Binding}"/>
                 </Grid>
@@ -60,6 +62,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="150"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="80"/>
@@ -70,11 +73,12 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Column="0" Text="Logo" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1" Text="ID" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="Name" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3" Text="Address" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="4" Text="Group" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <Border Grid.Column="5"/>
+                <TextBlock Grid.Column="1" Text="Logo ID" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="ID" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Text="Name" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="4" Text="Address" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="5" Text="Group" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <Border Grid.Column="6"/>
             </Grid>
         </DataTemplate>
 

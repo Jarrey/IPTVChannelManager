@@ -72,7 +72,7 @@ namespace IPTVChannelManager
                 sb.AppendLine($"#{group}");
                 foreach (var channel in channelGroup)
                 {
-                    sb.AppendLine($"#EXTINF:-1 tvg-id=\"{channel.Logo}\" tvg-name=\"{channel.Name}\" tvg-logo=\"{string.Format(logoTemplate, channel.Logo)}\" group-title=\"{group}\",{channel.Name}");
+                    sb.AppendLine($"#EXTINF:-1 tvg-id=\"{channel.Id}\" tvg-name=\"{channel.Name}\" tvg-logo=\"{string.Format(logoTemplate, channel.Logo)}\" group-title=\"{group}\",{channel.Name}");
                     sb.AppendLine($"{AddHost(channel.Url, useCustomHost ? customHost : Constants.DefaultHost)}");
                 }
             }
