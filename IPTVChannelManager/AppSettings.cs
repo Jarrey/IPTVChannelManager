@@ -27,7 +27,7 @@ namespace IPTVChannelManager
             this[ChannelGroups] = Constants.DefaultChannelGroups;
             this[LogoUrlTemplate] = Constants.DefaultLogoUrlTemplate;
             this[EpgUrl] = Constants.DefaultEpgUrl;
-            this[CustomHost] = Constants.DefaultCustomHost;
+            this[CustomHost] = string.Empty;
             this[ImportExportWithCustomHost] = true;
             this[PlayerPath] = string.Empty;
         }
