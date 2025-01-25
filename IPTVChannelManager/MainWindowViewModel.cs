@@ -20,6 +20,7 @@ namespace IPTVChannelManager
         private string[] _channelGroups;
         private bool _processCustomHost;
         private string _customHost;
+        private int _activeCount;
 
         public MainWindowViewModel()
         {
@@ -51,6 +52,8 @@ namespace IPTVChannelManager
             get => _channels;
             set => SetProperty(ref _channels, value);
         }
+
+        public string Count => $"({Channels?.Where(c => !c.Ignore)?.Count()}/{Channels?.Count})";
 
         public ObservableCollection<Channel> NewChannels
         {

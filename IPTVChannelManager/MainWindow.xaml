@@ -134,7 +134,7 @@
             <GroupBox.Header>
                 <TextBlock>
                     <Run Text="Channels"/>
-                    <Run Text="{Binding Channels.Count, Mode=OneWay, StringFormat=({0})}"/>
+                    <Run Text="{Binding Count, Mode=OneWay}"/>
                 </TextBlock>
             </GroupBox.Header>
             <DockPanel>
