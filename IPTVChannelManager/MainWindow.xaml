@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IPTVChannelManager"
+        xmlns:common="clr-namespace:IPTVChannelManager.Common"
         mc:Ignorable="d"
         Icon="tv.ico"
         Title="Channel Manager" Height="800" Width="1600">
@@ -49,7 +50,7 @@
                               ItemsSource="{Binding DataContext.ChannelGroups, RelativeSource={RelativeSource AncestorType=Window}}" 
                               SelectedItem="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <CheckBox Grid.Column="6" IsChecked="{Binding Ignore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Ignore" VerticalAlignment="Center" Margin="5 0" HorizontalAlignment="Center"/>
+                    <CheckBox Grid.Column="6" Checked="IgnoreCheckBoxUpdated" Unchecked="IgnoreCheckBoxUpdated" IsChecked="{Binding Ignore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Ignore" VerticalAlignment="Center" Margin="5 0" HorizontalAlignment="Center"/>
                     <Button Grid.Column="7" Content="Play" VerticalContentAlignment="Center" Padding="5 0" Margin="5 0"
                             Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                             CommandParameter="{Binding}"/>
@@ -132,17 +133,21 @@
 
         <GroupBox Grid.Row="1" Margin="2" BorderThickness="1">
             <GroupBox.Header>
-                <TextBlock>
-                    <Run Text="Channels"/>
-                    <Run Text="{Binding Count, Mode=OneWay}"/>
-                </TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock>
+                        <Run Text="Channels"/>
+                        <Run Text="{Binding Count, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBox Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100" Margin="5 0 0 0" VerticalAlignment="Center"/>
+                </StackPanel>
             </GroupBox.Header>
             <DockPanel>
                 <Border DockPanel.Dock="Top" Background="#AAA" Padding="36 0 0 0">
                     <ContentControl ContentTemplate="{StaticResource ListHeader}"/>
                 </Border>
                 <ListBox ItemsSource="{Binding Channels}" BorderThickness="0" HorizontalContentAlignment="Stretch"
-                         ItemTemplate="{StaticResource ChannelListItemTemplate}" VirtualizingPanel.VirtualizationMode="Standard" Background="#DDD">
+                         ItemTemplate="{StaticResource ChannelListItemTemplate}" VirtualizingPanel.VirtualizationMode="Standard" Background="#DDD"
+                         common:ItemsControlFilter.By="{Binding Filter, Mode=OneWay}">
                 </ListBox>
             </DockPanel>
         </GroupBox>

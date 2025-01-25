@@ -55,6 +55,8 @@ namespace IPTVChannelManager
 
         public string Count => $"({Channels?.Where(c => !c.Ignore)?.Count()}/{Channels?.Count})";
 
+        public void RaiseCountChange() => RaisePropertyChanged(nameof(Count));
+
         public ObservableCollection<Channel> NewChannels
         {
             get => _newChannels;
@@ -90,6 +92,42 @@ namespace IPTVChannelManager
         }
 
         #endregion Properties
+
+        #region Filter Properties
+        private string _filterText;
+        public string FilterText
+        {
+            get => _filterText;
+            set
+            {
+                _filterText = value;
+                RaisePropertyChanged(nameof(Filter));
+                RaisePropertyChanged(nameof(HasFilterText));
+                RaisePropertyChanged(nameof(FilterText));
+            }
+        }
+
+        public bool HasFilterText
+        {
+            get => !string.IsNullOrWhiteSpace(FilterText);
+        }
+
+        public Predicate<object> Filter
+        {
+            get => new Predicate<object>((obj) =>
+            {
+                if (obj is Channel channel)
+                {
+                    return string.IsNullOrWhiteSpace(FilterText) ||
+                           channel.Name?.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase) == true ||
+                           channel.Logo?.StartsWith(FilterText, StringComparison.InvariantCultureIgnoreCase) == true ||
+                           channel.Url?.StartsWith(FilterText, StringComparison.InvariantCultureIgnoreCase) == true ||
+                           channel.Group?.StartsWith(FilterText, StringComparison.InvariantCultureIgnoreCase) == true;
+                }
+                return false;
+            });
+        }
+        #endregion Filter Properties
 
         #region Commands
         public ICommand ImportChannelsCommand { get; }

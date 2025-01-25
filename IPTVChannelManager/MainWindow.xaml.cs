@@ -25,5 +25,11 @@ namespace IPTVChannelManager
             InitializeComponent();
             this.DataContext = new MainWindowViewModel();
         }
+
+        private void IgnoreCheckBoxUpdated(object sender, RoutedEventArgs e)
+        {
+            var viewmodel = DataContext as MainWindowViewModel;
+            viewmodel?.RaiseCountChange();
+        }
     }
 }
