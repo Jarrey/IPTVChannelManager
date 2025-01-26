@@ -34,7 +34,6 @@ namespace IPTVChannelManager
 
             ImportChannelsCommand = new DelegateCommand(ImportChannels);
             ReloadChannelsDBCommand = new DelegateCommand(() => Channels = LoadChannelDB() ?? new ObservableCollection<Channel>());
-            ShowSettingCommand = new DelegateCommand(ShowSetting);
             SaveChannelsDBCommand = new DelegateCommand(SaveChannelsDB);
             RemoveDBChannelCommand = new DelegateCommand<Channel>(RemoveDBChannel);
             AddCommand = new DelegateCommand<Channel>(AddChannel);
@@ -114,7 +113,7 @@ namespace IPTVChannelManager
 
         public Predicate<object> Filter
         {
-            get => new Predicate<object>((obj) =>
+            get => new((obj) =>
             {
                 if (obj is Channel channel)
                 {
@@ -132,7 +131,6 @@ namespace IPTVChannelManager
         #region Commands
         public ICommand ImportChannelsCommand { get; }
         public ICommand ReloadChannelsDBCommand { get; }
-        public ICommand ShowSettingCommand { get; }
         public ICommand SaveChannelsDBCommand { get; }
         public ICommand RemoveDBChannelCommand { get; }
         public ICommand AddCommand { get; }
@@ -329,12 +327,6 @@ namespace IPTVChannelManager
             {
                 RemoveChannel(channel);
             }
-        }
-
-        public void ShowSetting()
-        {
-            var settingWindow = new SettingWindow();
-            settingWindow.ShowDialog();
         }
 
         private void Play(Channel channel)

@@ -1,24 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using IPTVChannelManager.Common;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace IPTVChannelManager
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : BaseWindow
     {
         public MainWindow()
         {
@@ -30,6 +18,13 @@ namespace IPTVChannelManager
         {
             var viewmodel = DataContext as MainWindowViewModel;
             viewmodel?.RaiseCountChange();
+        }
+
+        private void SettingButtonClick(object sender, RoutedEventArgs e)
+        {
+            var settingWindow = new SettingWindow();
+            settingWindow.Owner = this;
+            settingWindow.ShowDialog();
         }
     }
 }
