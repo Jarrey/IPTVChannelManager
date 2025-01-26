@@ -90,7 +90,6 @@ namespace IPTVChannelManager.Common
                         }
 
                         Point point = WindowState == WindowState.Maximized ? new Point(0, 30) : new Point(Left + BorderThickness.Left, 30 + Top + BorderThickness.Top);
-                        point = element.TransformToAncestor(this).Transform(point);
                         SystemCommands.ShowSystemMenu(this, point);
                         e.Handled = true;
                     },

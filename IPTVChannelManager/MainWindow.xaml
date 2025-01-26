@@ -196,7 +196,8 @@
                 </Border>
                 <ListBox ItemsSource="{Binding Channels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="1 0 1 1"
                          ItemTemplate="{StaticResource ChannelListItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
-                         common:ItemsControlFilter.By="{Binding Filter, Mode=OneWay}" ItemContainerStyle="{StaticResource ListBoxItemStyle}">
+                         common:ItemsControlFilter.By="{Binding Filter, Mode=OneWay}" ItemContainerStyle="{StaticResource ListBoxItemStyle}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto">
                 </ListBox>
             </DockPanel>
         </GroupBox>
@@ -224,7 +225,7 @@
                     </Border>
                     <ListBox ItemsSource="{Binding NewChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="1 0 1 1"
                              ItemTemplate="{StaticResource NewChannelItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
-                             ItemContainerStyle="{StaticResource ListBoxItemStyle}">
+                             ItemContainerStyle="{StaticResource ListBoxItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     </ListBox>
                 </DockPanel>
             </GroupBox>
@@ -246,7 +247,7 @@
                     </Border>
                     <ListBox ItemsSource="{Binding OldChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="1 0 1 1"
                              ItemTemplate="{StaticResource OldChannelItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
-                             ItemContainerStyle="{StaticResource ListBoxItemStyle}">
+                             ItemContainerStyle="{StaticResource ListBoxItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     </ListBox>
                 </DockPanel>
             </GroupBox>
