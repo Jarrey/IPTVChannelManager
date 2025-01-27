@@ -7,7 +7,7 @@
                    xmlns:local="clr-namespace:IPTVChannelManager"
                    xmlns:common="clr-namespace:IPTVChannelManager.Common"
                    mc:Ignorable="d"
-                   Icon="tv.ico" Title="IPTV Channel Manager" Height="800" Width="1600" TextElement.Foreground="#CCC">
+                   Icon="tv.ico" Title="IPTV Channel Manager" MinHeight="800" MinWidth="1500" TextElement.Foreground="#CCC">
     <common:BaseWindow.Resources>
         <DataTemplate x:Key="ChannelItemTemplate">
             <Border Margin="0">
