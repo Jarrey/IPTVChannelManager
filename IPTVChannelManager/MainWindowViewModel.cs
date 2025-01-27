@@ -157,7 +157,7 @@ namespace IPTVChannelManager
                 {
                     List<Channel> channelDB = JsonConvert.DeserializeObject<List<Channel>>(File.ReadAllText(DBPath));
                     List<string> groupOrder = ChannelGroups.ToList();
-                    return new ObservableCollection<Channel>(channelDB?.OrderBy(c => string.IsNullOrWhiteSpace(c.Group) ? int.MaxValue : groupOrder.IndexOf(c.Group)));
+                    return new ObservableCollection<Channel>(channelDB?.OrderBy(c => string.IsNullOrWhiteSpace(c.Group) ? int.MaxValue : groupOrder.IndexOf(c.Group))?.ToList());
                 }
                 catch (Exception ex)
                 {

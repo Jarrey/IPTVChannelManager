@@ -6,8 +6,8 @@
                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
                    xmlns:local="clr-namespace:IPTVChannelManager"
                    xmlns:common="clr-namespace:IPTVChannelManager.Common"
-                   mc:Ignorable="d"
-                   Icon="tv.ico" Title="IPTV Channel Manager" MinHeight="800" MinWidth="1500" TextElement.Foreground="#CCC">
+                   mc:Ignorable="d" SnapsToDevicePixels="True" RenderOptions.ClearTypeHint="Enabled" RenderOptions.CachingHint="Cache"
+                   Icon="tv.ico" Title="IPTV Channel Manager" MinHeight="700" MinWidth="1500" TextElement.Foreground="#CCC">
     <common:BaseWindow.Resources>
         <DataTemplate x:Key="ChannelItemTemplate">
             <Border Margin="0">
@@ -33,7 +33,7 @@
                         <ColumnDefinition Width="40"/>
                     </Grid.ColumnDefinitions>
                     <Border Background="Transparent">
-                        <Image Source="{Binding LogoUrl}" Width="40" Height="20">
+                        <Image Source="{Binding LogoUrl}" Width="40" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
                             <Image.ToolTip>
                                 <Border Background="#3D414F">
                                     <Image Source="{Binding LogoUrl}" Margin="0"/>
