@@ -9,6 +9,7 @@
                    mc:Ignorable="d" SnapsToDevicePixels="True" RenderOptions.ClearTypeHint="Enabled" RenderOptions.CachingHint="Cache"
                    Icon="tv.ico" Title="IPTV Channel Manager" MinHeight="700" MinWidth="1500" TextElement.Foreground="#CCC">
     <common:BaseWindow.Resources>
+        <common:ImageConverter x:Key="ImageConverter" />
         <DataTemplate x:Key="ChannelItemTemplate">
             <Border Margin="0">
                 <Grid VerticalAlignment="Center" Margin="0">
@@ -33,10 +34,10 @@
                         <ColumnDefinition Width="40"/>
                     </Grid.ColumnDefinitions>
                     <Border Background="Transparent">
-                        <Image Source="{Binding LogoUrl}" Width="40" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image Source="{Binding LogoUrl, Converter={StaticResource ImageConverter}, IsAsync=true}" Width="40" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
                             <Image.ToolTip>
                                 <Border Background="#3D414F">
-                                    <Image Source="{Binding LogoUrl}" Margin="0"/>
+                                    <Image Source="{Binding LogoUrl, Converter={StaticResource ImageConverter}, IsAsync=true}" Margin="0"/>
                                 </Border>
                             </Image.ToolTip>
                         </Image>
