@@ -8,7 +8,7 @@
         public const string DateFormatInQuery = "yyyyMMdd";
         public const double Epsilon = 1e-10;
         public const string Spliter = ",，| ";
-        public const string DefaultHost = "rtp://";
+        public const string DefaultMulticastHost = "rtp://";
 
         public const string ChannelDB = "channeldb.json";
 

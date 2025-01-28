@@ -17,8 +17,8 @@ namespace IPTVChannelManager
         private ObservableCollection<Channel> _newChannels;
         private ObservableCollection<Channel> _oldChannels;
         private string[] _channelGroups;
-        private bool _processCustomHost;
-        private string _customHost;
+        private bool _unicastMulticastSwitch;
+        private string _unicastHost;
         private int _activeCount;
         private PlayerWindow _playerWindow;
 
@@ -27,8 +27,8 @@ namespace IPTVChannelManager
             NewChannels = new ObservableCollection<Channel>();
             OldChannels = new ObservableCollection<Channel>();
             ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups)?.Split(Constants.Spliter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            ProcessCustomHost = AppSettings.Instance.Get<bool>(AppSettings.ImportExportWithCustomHost);
-            CustomHost = AppSettings.Instance.Get(AppSettings.CustomHost);
+            UnicastMulticastSwitch = AppSettings.Instance.Get<bool>(AppSettings.ImportExportWithCustomHost);
+            UnicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
             AppSettings.Instance.SettingChanged += SettingChanged;
             Channels = LoadChannelDB() ?? new ObservableCollection<Channel>();
 
@@ -74,20 +74,20 @@ namespace IPTVChannelManager
             set => SetProperty(ref _channelGroups, value);
         }
 
-        public bool ProcessCustomHost
+        public bool UnicastMulticastSwitch
         {
-            get => _processCustomHost;
+            get => _unicastMulticastSwitch;
             set
             {
-                SetProperty(ref _processCustomHost, value);
+                SetProperty(ref _unicastMulticastSwitch, value);
                 AppSettings.Instance.Set(AppSettings.ImportExportWithCustomHost, value);
             }
         }
 
-        public string CustomHost
+        public string UnicastHost
         {
-            get => _customHost;
-            set => SetProperty(ref _customHost, value);
+            get => _unicastHost;
+            set => SetProperty(ref _unicastHost, value);
         }
 
         #endregion Properties
@@ -146,7 +146,7 @@ namespace IPTVChannelManager
         private void SettingChanged(object? sender, (string, object) e)
         {
             ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups)?.Split(Constants.Spliter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            CustomHost = AppSettings.Instance.Get(AppSettings.CustomHost);
+            UnicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
         }
 
         private ObservableCollection<Channel> LoadChannelDB()
@@ -185,7 +185,7 @@ namespace IPTVChannelManager
                 {
                     if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok && File.Exists(openFileDialog.FileName))
                     {
-                        var channels = ImportExportHelper.ImportFromTxt(File.ReadAllText(openFileDialog.FileName), ProcessCustomHost ? CustomHost : null);
+                        var channels = ImportExportHelper.ImportFromTxt(File.ReadAllText(openFileDialog.FileName), UnicastMulticastSwitch ? UnicastHost : null);
                         NewChannels.Clear();
                         foreach (var channel in channels)
                         {
@@ -229,7 +229,7 @@ namespace IPTVChannelManager
                     saveFileDialog.Filters.Add(new CommonFileDialogFilter("m3u Files", "*.m3u"));
                     if (saveFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
                     {
-                        string channels = ImportExportHelper.ExportToM3u(Channels, ProcessCustomHost);
+                        string channels = ImportExportHelper.ExportToM3u(Channels, UnicastMulticastSwitch);
                         File.WriteAllText(saveFileDialog.FileName, channels);
                     }
                 }
@@ -258,7 +258,7 @@ namespace IPTVChannelManager
                     saveFileDialog.Filters.Add(new CommonFileDialogFilter("txt Files", "*.txt"));
                     if (saveFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
                     {
-                        string channels = ImportExportHelper.ExportToTxt(Channels, ProcessCustomHost);
+                        string channels = ImportExportHelper.ExportToTxt(Channels, UnicastMulticastSwitch);
                         File.WriteAllText(saveFileDialog.FileName, channels);
                     }
                 }
@@ -334,7 +334,7 @@ namespace IPTVChannelManager
             if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
             try
             {
-                string streamUrl = ProcessCustomHost ? $"{CustomHost}{channel.Url}" : $"{Constants.DefaultHost}{channel.Url}";
+                string streamUrl = UnicastMulticastSwitch ? $"{UnicastHost}{channel.Url}" : $"{Constants.DefaultMulticastHost}{channel.Url}";
                 if (_playerWindow == null || _playerWindow.IsDisposed)
                 {
                     _playerWindow = new PlayerWindow();

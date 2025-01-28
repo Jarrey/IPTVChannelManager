@@ -7,14 +7,14 @@ namespace IPTVChannelManager
         private string _channelGroups;
         private string _logoUrlTemplate;
         private string _epgUrl;
-        private string _customHost;
+        private string _unicastHost;
 
         public SettingWindowViewModel()
         {
             ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups);
             LogoUrlTemplate = AppSettings.Instance.Get(AppSettings.LogoUrlTemplate);
             EpgUrl = AppSettings.Instance.Get(AppSettings.EpgUrl);
-            CustomHost = AppSettings.Instance.Get(AppSettings.CustomHost);
+            UnicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
         }
 
         #region Properties
@@ -48,13 +48,13 @@ namespace IPTVChannelManager
             }
         }
 
-        public string CustomHost
+        public string UnicastHost
         {
-            get => _customHost;
+            get => _unicastHost;
             set
             {
-                SetProperty(ref _customHost, value);
-                AppSettings.Instance.Set(AppSettings.CustomHost, value);
+                SetProperty(ref _unicastHost, value);
+                AppSettings.Instance.Set(AppSettings.UnicastHost, value);
             }
         }
         #endregion Properties

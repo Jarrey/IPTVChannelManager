@@ -18,7 +18,7 @@ namespace IPTVChannelManager
         public const string ChannelGroups = nameof(ChannelGroups);
         public const string LogoUrlTemplate = nameof(LogoUrlTemplate);
         public const string EpgUrl = nameof(EpgUrl);
-        public const string CustomHost = nameof(CustomHost);
+        public const string UnicastHost = nameof(UnicastHost);
         public const string ImportExportWithCustomHost = nameof(ImportExportWithCustomHost);
 
         protected override void InitSetting()
@@ -26,7 +26,7 @@ namespace IPTVChannelManager
             this[ChannelGroups] = Constants.DefaultChannelGroups;
             this[LogoUrlTemplate] = Constants.DefaultLogoUrlTemplate;
             this[EpgUrl] = Constants.DefaultEpgUrl;
-            this[CustomHost] = string.Empty;
+            this[UnicastHost] = string.Empty;
             this[ImportExportWithCustomHost] = true;
         }
         #endregion Settings

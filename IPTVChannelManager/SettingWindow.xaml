@@ -20,8 +20,8 @@
             <TextBox DockPanel.Dock="Right" Text="{Binding EpgUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" VerticalContentAlignment="Center" TextWrapping="NoWrap" Height="25" Margin="4 2"/>
         </DockPanel>
         <DockPanel Margin="4 2">
-            <TextBlock Text="Custom Host:" Margin="4 2" TextAlignment="Right" VerticalAlignment="Center" Width="100" Foreground="White"/>
-            <TextBox DockPanel.Dock="Right" Text="{Binding CustomHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" VerticalContentAlignment="Center" TextWrapping="NoWrap" Height="25" Margin="4 2"/>
+            <TextBlock Text="Unicast URL Prefix:" Margin="4 2" TextAlignment="Right" VerticalAlignment="Center" Width="100" Foreground="White"/>
+            <TextBox DockPanel.Dock="Right" Text="{Binding UnicastHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" VerticalContentAlignment="Center" TextWrapping="NoWrap" Height="25" Margin="4 2"/>
         </DockPanel>
         <StackPanel Orientation="Horizontal" Margin="4 2" HorizontalAlignment="Right">
             <Button Content="Close" Click="CloseButtonClick" Width="80" Height="25" Margin="4 2"/>

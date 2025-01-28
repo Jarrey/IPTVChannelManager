@@ -8,7 +8,7 @@ namespace IPTVChannelManager
 {
     public class ImportExportHelper
     {
-        public static IEnumerable<Channel> ImportFromTxt(string content, string customHost = null)
+        public static IEnumerable<Channel> ImportFromTxt(string content, string unicastHost = null)
         {
             using (var reader = new StringReader(content))
             {
@@ -28,7 +28,7 @@ namespace IPTVChannelManager
                     {
                         var name = info[0]?.Trim() ?? string.Empty;
                         var url = info[1]?.Trim() ?? string.Empty;
-                        url = RemoveHost(url, string.IsNullOrWhiteSpace(customHost) ? Constants.DefaultHost : customHost);
+                        url = RemoveHost(url, string.IsNullOrWhiteSpace(unicastHost) ? Constants.DefaultMulticastHost : unicastHost);
                         yield return new Channel(name, url, group ?? string.Empty);
                     }
                 }
@@ -36,10 +36,9 @@ namespace IPTVChannelManager
             }
         }
 
-        public static string ExportToTxt(IEnumerable<Channel> channels, bool useCustomHost = true)
+        public static string ExportToTxt(IEnumerable<Channel> channels, bool useUnicastHost = true)
         {
-            string customHost = AppSettings.Instance.Get(AppSettings.CustomHost);
-
+            string unicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
             var groupedChannels = channels.Where(c => !c.Ignore).GroupBy(c => c.Group);
             StringBuilder sb = new StringBuilder();
             foreach (var channelGroup in groupedChannels)
@@ -49,16 +48,16 @@ namespace IPTVChannelManager
                 sb.AppendLine($"{group},#genre#");
                 foreach (var channel in channelGroup)
                 {
-                    sb.AppendLine($"{channel.Name},{AddHost(channel.Url, useCustomHost ? customHost : Constants.DefaultHost)}");
+                    sb.AppendLine($"{channel.Name},{AddHost(channel.Url, useUnicastHost ? unicastHost : Constants.DefaultMulticastHost)}");
                 }
                 sb.AppendLine();
             }
             return sb.ToString();
         }
 
-        public static string ExportToM3u(IEnumerable<Channel> channels, bool useCustomHost = true)
+        public static string ExportToM3u(IEnumerable<Channel> channels, bool useUnicastHost = true)
         {
-            string customHost = AppSettings.Instance.Get(AppSettings.CustomHost);
+            string unicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
             string epg = AppSettings.Instance.Get(AppSettings.EpgUrl);
             string logoTemplate = AppSettings.Instance.Get(AppSettings.LogoUrlTemplate);
 
@@ -73,20 +72,20 @@ namespace IPTVChannelManager
                 foreach (var channel in channelGroup)
                 {
                     sb.AppendLine($"#EXTINF:-1 tvg-id=\"{channel.Id}\" tvg-name=\"{channel.Name}\" tvg-logo=\"{string.Format(logoTemplate, channel.Logo)}\" group-title=\"{group}\",{channel.Name}");
-                    sb.AppendLine($"{AddHost(channel.Url, useCustomHost ? customHost : Constants.DefaultHost)}");
+                    sb.AppendLine($"{AddHost(channel.Url, useUnicastHost ? unicastHost : Constants.DefaultMulticastHost)}");
                 }
             }
             return sb.ToString();
         }
 
-        private static string RemoveHost(string url, string customHost)
+        private static string RemoveHost(string url, string unicastHost)
         {
-            return url.Replace(customHost, string.Empty);
+            return url.Replace(unicastHost, string.Empty);
         }
 
-        private static string AddHost(string url, string customHost)
+        private static string AddHost(string url, string unicastHost)
         {
-            return $"{customHost}{url}";
+            return $"{unicastHost}{url}";
         }
     }
 }

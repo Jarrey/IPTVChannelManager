@@ -135,7 +135,7 @@
 
         <DockPanel Grid.ColumnSpan="2" LastChildFill="True">
             <StackPanel Orientation="Horizontal" Margin="2" DockPanel.Dock="Right">
-                <CheckBox Content="Process custom host" IsChecked="{Binding ProcessCustomHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="2"/>
+                <CheckBox Content="ON: Unicast | OFF: Multicast" IsChecked="{Binding UnicastMulticastSwitch, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="2"/>
                 <Button Margin="2" Padding="10 2" Command="{Binding ExportToM3uCommand}">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon Kind="FileExportOutline" Margin="0 0 5 0" VerticalAlignment="Center"/>
