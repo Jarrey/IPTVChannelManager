@@ -5,7 +5,7 @@
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                    xmlns:common="clr-namespace:IPTVChannelManager.Common"
                    mc:Ignorable="d" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
-                   Title="Setting" ShowIcon="False"  MinHeight="230" MaxHeight="230" Width="500" MinWidth="300" MaxWidth="1000" Foreground="#CCC">
+                   Title="Setting" ShowIcon="False"  MinHeight="200" MaxHeight="200" Width="500" MinWidth="300" MaxWidth="1000" Foreground="#CCC">
     <StackPanel>
         <DockPanel Margin="4 2">
             <TextBlock Text="Channel Groups:" Margin="4 2" TextAlignment="Right" VerticalAlignment="Center" Width="100" Foreground="White"/>
@@ -22,10 +22,6 @@
         <DockPanel Margin="4 2">
             <TextBlock Text="Custom Host:" Margin="4 2" TextAlignment="Right" VerticalAlignment="Center" Width="100" Foreground="White"/>
             <TextBox DockPanel.Dock="Right" Text="{Binding CustomHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" VerticalContentAlignment="Center" TextWrapping="NoWrap" Height="25" Margin="4 2"/>
-        </DockPanel>
-        <DockPanel Margin="4 2">
-            <TextBlock Text="Player Location:" Margin="4 2" TextAlignment="Right" VerticalAlignment="Center" Width="100" Foreground="White"/>
-            <TextBox DockPanel.Dock="Right" Text="{Binding PlayerPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" VerticalContentAlignment="Center" TextWrapping="NoWrap" Height="25" Margin="4 2"/>
         </DockPanel>
         <StackPanel Orientation="Horizontal" Margin="4 2" HorizontalAlignment="Right">
             <Button Content="Close" Click="CloseButtonClick" Width="80" Height="25" Margin="4 2"/>

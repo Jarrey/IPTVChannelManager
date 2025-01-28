@@ -20,7 +20,6 @@ namespace IPTVChannelManager
         public const string EpgUrl = nameof(EpgUrl);
         public const string CustomHost = nameof(CustomHost);
         public const string ImportExportWithCustomHost = nameof(ImportExportWithCustomHost);
-        public const string PlayerPath = nameof(PlayerPath);
 
         protected override void InitSetting()
         {
@@ -29,7 +28,6 @@ namespace IPTVChannelManager
             this[EpgUrl] = Constants.DefaultEpgUrl;
             this[CustomHost] = string.Empty;
             this[ImportExportWithCustomHost] = true;
-            this[PlayerPath] = string.Empty;
         }
         #endregion Settings
     }

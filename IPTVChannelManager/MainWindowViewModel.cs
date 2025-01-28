@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
@@ -21,6 +20,7 @@ namespace IPTVChannelManager
         private bool _processCustomHost;
         private string _customHost;
         private int _activeCount;
+        private PlayerWindow _playerWindow;
 
         public MainWindowViewModel()
         {
@@ -332,11 +332,20 @@ namespace IPTVChannelManager
         private void Play(Channel channel)
         {
             if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
-            string playerPath = AppSettings.Instance.Get(AppSettings.PlayerPath);
-            if (string.IsNullOrWhiteSpace(playerPath)) return;
             try
             {
-                Process.Start(new ProcessStartInfo(playerPath, ProcessCustomHost ? $"{CustomHost}{channel.Url}" : $"{Constants.DefaultHost}{channel.Url}"));
+                string streamUrl = ProcessCustomHost ? $"{CustomHost}{channel.Url}" : $"{Constants.DefaultHost}{channel.Url}";
+                if (_playerWindow == null || _playerWindow.IsDisposed)
+                {
+                    _playerWindow = new PlayerWindow();
+                    _playerWindow.Show();
+                }
+                else
+                {
+                    _playerWindow.Activate();
+                }
+                _playerWindow.Title = channel.Name;
+                _playerWindow.PlayNetworkStream(streamUrl);
             }
             catch (Exception ex)
             {

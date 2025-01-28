@@ -8,7 +8,6 @@ namespace IPTVChannelManager
         private string _logoUrlTemplate;
         private string _epgUrl;
         private string _customHost;
-        private string _playerPath;
 
         public SettingWindowViewModel()
         {
@@ -16,7 +15,6 @@ namespace IPTVChannelManager
             LogoUrlTemplate = AppSettings.Instance.Get(AppSettings.LogoUrlTemplate);
             EpgUrl = AppSettings.Instance.Get(AppSettings.EpgUrl);
             CustomHost = AppSettings.Instance.Get(AppSettings.CustomHost);
-            PlayerPath = AppSettings.Instance.Get(AppSettings.PlayerPath);
         }
 
         #region Properties
@@ -57,16 +55,6 @@ namespace IPTVChannelManager
             {
                 SetProperty(ref _customHost, value);
                 AppSettings.Instance.Set(AppSettings.CustomHost, value);
-            }
-        }
-
-        public string PlayerPath
-        {
-            get => _playerPath;
-            set
-            {
-                SetProperty(ref _playerPath, value);
-                AppSettings.Instance.Set(AppSettings.PlayerPath, value);
             }
         }
         #endregion Properties
