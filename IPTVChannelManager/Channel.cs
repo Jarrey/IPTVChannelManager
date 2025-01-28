@@ -13,6 +13,7 @@ namespace IPTVChannelManager
         private string _url;
         private string _group;
         private bool _ignore;
+        private string _logoUrl;
 
         public Channel(string name, string url, string group)
         {
@@ -52,11 +53,18 @@ namespace IPTVChannelManager
             get
             {
                 string url = $"logos/{Logo}.png";
-                if (App.ResourceNames.Any(name => HttpUtility.UrlDecode(name)?.ToLower() == HttpUtility.UrlDecode(url)?.ToLower()))
+                if (string.IsNullOrWhiteSpace(_logoUrl))
                 {
-                    return url;
+                    if (App.ResourceNames.Any(name => HttpUtility.UrlDecode(name)?.ToLower() == HttpUtility.UrlDecode(url)?.ToLower()))
+                    {
+                        _logoUrl = url;
+                    }
+                    else
+                    {
+                        _logoUrl = "logos/null.png";
+                    }
                 }
-                return "logos/null.png";
+                return _logoUrl;
             }
         }
     }

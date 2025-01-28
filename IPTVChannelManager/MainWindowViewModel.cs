@@ -334,7 +334,14 @@ namespace IPTVChannelManager
             if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
             string playerPath = AppSettings.Instance.Get(AppSettings.PlayerPath);
             if (string.IsNullOrWhiteSpace(playerPath)) return;
-            Process.Start(new ProcessStartInfo(playerPath, ProcessCustomHost ? $"{CustomHost}{channel.Url}" : $"{Constants.DefaultHost}{channel.Url}"));
+            try
+            {
+                Process.Start(new ProcessStartInfo(playerPath, ProcessCustomHost ? $"{CustomHost}{channel.Url}" : $"{Constants.DefaultHost}{channel.Url}"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex.Message}, {ex}");
+            }
         }
         #endregion Methods
     }
