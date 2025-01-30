@@ -344,7 +344,7 @@ namespace IPTVChannelManager
                 {
                     _playerWindow.Activate();
                 }
-                _playerWindow.Title = channel.Name;
+                _playerWindow.Title = $"{channel.Name} - {streamUrl}";
                 _playerWindow.PlayNetworkStream(streamUrl);
             }
             catch (Exception ex)
