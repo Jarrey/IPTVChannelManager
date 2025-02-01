@@ -583,6 +583,7 @@
     <None Remove="logos\哒啵电竞.png" />
     <None Remove="logos\哒啵赛事.png" />
     <None Remove="logos\嘉佳卡通.png" />
+    <None Remove="logos\嘉定电视.png" />
     <None Remove="logos\四川乡村.png" />
     <None Remove="logos\四川卫视.png" />
     <None Remove="logos\四川妇女儿童.png" />
@@ -1521,6 +1522,7 @@
     <Resource Include="logos\哒啵电竞.png" />
     <Resource Include="logos\哒啵赛事.png" />
     <Resource Include="logos\嘉佳卡通.png" />
+    <Resource Include="logos\嘉定电视.png" />
     <Resource Include="logos\四川乡村.png" />
     <Resource Include="logos\四川卫视.png" />
     <Resource Include="logos\四川妇女儿童.png" />
