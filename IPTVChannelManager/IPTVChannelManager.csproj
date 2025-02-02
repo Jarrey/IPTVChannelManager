@@ -957,6 +957,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="m3u-parser">
+      <HintPath>..\lib\m3u-parser.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="logos\4K电影.png" />
     <Resource Include="logos\abcaus.png" />
     <Resource Include="logos\afc.png" />

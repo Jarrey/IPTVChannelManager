@@ -183,23 +183,38 @@ namespace IPTVChannelManager
                     ShowPlacesList = true
                 })
                 {
+                    openFileDialog.Filters.Add(new CommonFileDialogFilter("txt Files", "*.txt"));
+                    openFileDialog.Filters.Add(new CommonFileDialogFilter("m3u Files", "*.m3u"));
                     if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok && File.Exists(openFileDialog.FileName))
                     {
-                        var channels = ImportExportHelper.ImportFromTxt(File.ReadAllText(openFileDialog.FileName), UnicastMulticastSwitch ? UnicastHost : null);
-                        NewChannels.Clear();
-                        foreach (var channel in channels)
+                        var unicastHost = UnicastMulticastSwitch ? UnicastHost : null;
+                        IEnumerable<Channel> channels = null;
+                        if (openFileDialog.FileName.EndsWith(".txt", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            if (Channels.All(c => c.Url != channel.Url))
-                            {
-                                NewChannels.Add(channel);
-                            }
+                            channels = ImportExportHelper.ImportFromTxt(openFileDialog.FileName, unicastHost);
                         }
-                        OldChannels.Clear();
-                        foreach (var channel in Channels)
+                        else if (openFileDialog.FileName.EndsWith(".m3u", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            if (channels.All(c => c.Url != channel.Url))
+                            channels = ImportExportHelper.ImportFromM3u(openFileDialog.FileName, unicastHost);
+                        }
+
+                        if (channels?.Any() == true)
+                        {
+                            NewChannels.Clear();
+                            foreach (var channel in channels)
                             {
-                                OldChannels.Add(channel);
+                                if (Channels.All(c => c.Url != channel.Url))
+                                {
+                                    NewChannels.Add(channel);
+                                }
+                            }
+                            OldChannels.Clear();
+                            foreach (var channel in Channels)
+                            {
+                                if (channels.All(c => c.Url != channel.Url))
+                                {
+                                    OldChannels.Add(channel);
+                                }
                             }
                         }
                     }

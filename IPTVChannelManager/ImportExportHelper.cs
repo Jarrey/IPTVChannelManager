@@ -1,4 +1,5 @@
-﻿using System;
+﻿using M3UParser;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,8 +9,10 @@ namespace IPTVChannelManager
 {
     public class ImportExportHelper
     {
-        public static IEnumerable<Channel> ImportFromTxt(string content, string unicastHost = null)
+        public static IEnumerable<Channel> ImportFromTxt(string filepath, string unicastHost = null)
         {
+            string content = File.ReadAllText(filepath);
+            if (string.IsNullOrWhiteSpace(content)) yield break;
             using (var reader = new StringReader(content))
             {
                 string line = null;
@@ -33,6 +36,19 @@ namespace IPTVChannelManager
                     }
                 }
                 yield break;
+            }
+        }
+
+        public static IEnumerable<Channel> ImportFromM3u(string filepath, string unicastHost = null)
+        {
+            using (Stream file = new FileStream(filepath, FileMode.Open))
+            {
+                var playlist = M3uParser.GetFromStream(file);
+                return playlist?.PlaylistEntries?.Select(p =>
+                {
+                    var url = RemoveHost(p.Uri, string.IsNullOrWhiteSpace(unicastHost) ? Constants.DefaultMulticastHost : unicastHost);
+                    return new Channel(p.Name, url, p.Group ?? string.Empty) { Id = p.Id };
+                });
             }
         }
 
@@ -78,12 +94,12 @@ namespace IPTVChannelManager
             return sb.ToString();
         }
 
-        private static string RemoveHost(string url, string unicastHost)
+        public static string RemoveHost(string url, string unicastHost)
         {
             return url.Replace(unicastHost, string.Empty);
         }
 
-        private static string AddHost(string url, string unicastHost)
+        public static string AddHost(string url, string unicastHost)
         {
             return $"{unicastHost}{url}";
         }
