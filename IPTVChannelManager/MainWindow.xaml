@@ -53,7 +53,7 @@
 
                     <CheckBox Grid.Column="6" Checked="IgnoreCheckBoxUpdated" Unchecked="IgnoreCheckBoxUpdated" IsChecked="{Binding Ignore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               VerticalAlignment="Center" Margin="0" HorizontalAlignment="Center" Background="Orange"/>
-                    <Button Grid.Column="7" VerticalContentAlignment="Center" Padding="2 0" Margin="1 0" Foreground="White"
+                    <Button Grid.Column="7" VerticalContentAlignment="Center" Padding="2 0" Margin="0" Foreground="White"
                             Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                             CommandParameter="{Binding}">
                         <materialDesign:PackIcon Kind="Play"/>
@@ -192,10 +192,10 @@
                 </StackPanel>
             </GroupBox.Header>
             <DockPanel>
-                <Border DockPanel.Dock="Top" Background="#666" Padding="36 0 0 0" Margin="1 0">
+                <Border DockPanel.Dock="Top" Background="#666" Padding="36 0 0 0" Margin="0">
                     <ContentControl ContentTemplate="{StaticResource ListHeader}"/>
                 </Border>
-                <ListBox ItemsSource="{Binding Channels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="1 0 1 1"
+                <ListBox ItemsSource="{Binding Channels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="0"
                          ItemTemplate="{StaticResource ChannelListItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
                          common:ItemsControlFilter.By="{Binding Filter, Mode=OneWay}" ItemContainerStyle="{StaticResource ListBoxItemStyle}"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto">
@@ -221,10 +221,10 @@
                     </StackPanel>
                 </GroupBox.Header>
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Background="#666" Padding="36 0 0 0" Margin="1 0">
+                    <Border DockPanel.Dock="Top" Background="#666" Padding="36 0 0 0" Margin="0">
                         <ContentControl ContentTemplate="{StaticResource ListHeader}"/>
                     </Border>
-                    <ListBox ItemsSource="{Binding NewChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="1 0 1 1"
+                    <ListBox ItemsSource="{Binding NewChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="0"
                              ItemTemplate="{StaticResource NewChannelItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
                              ItemContainerStyle="{StaticResource ListBoxItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     </ListBox>
@@ -243,10 +243,10 @@
                     </StackPanel>
                 </GroupBox.Header>
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Background="#666" Padding="36 0 0 0" Margin="1 0">
+                    <Border DockPanel.Dock="Top" Background="#666" Padding="36 0 0 0" Margin="0">
                         <ContentControl ContentTemplate="{StaticResource ListHeader}"/>
                     </Border>
-                    <ListBox ItemsSource="{Binding OldChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="1 0 1 1"
+                    <ListBox ItemsSource="{Binding OldChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="0"
                              ItemTemplate="{StaticResource OldChannelItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
                              ItemContainerStyle="{StaticResource ListBoxItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     </ListBox>
