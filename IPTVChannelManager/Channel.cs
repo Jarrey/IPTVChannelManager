@@ -11,7 +11,7 @@ namespace IPTVChannelManager
         private string _name;
         private string _logo;
         private string _url;
-        private string _group;
+        private string _group = string.Empty;
         private bool _ignore;
         private string _logoUrl;
 
