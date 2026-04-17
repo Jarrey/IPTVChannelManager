@@ -105,16 +105,21 @@ namespace IPTVChannelManager
         }
 
         /// <summary>
-        /// 同步覆盖窗口的位置和大小到宿主窗口
+        /// Sync overlay position and size to the owner window (supports multi-monitor).
         /// </summary>
         public void SyncPosition(Window owner)
         {
             if (owner.WindowState == WindowState.Maximized)
             {
-                Left = 0;
-                Top = 0;
-                Width = SystemParameters.PrimaryScreenWidth;
-                Height = SystemParameters.PrimaryScreenHeight;
+                // Get the screen that contains the owner window
+                var hwnd = new System.Windows.Interop.WindowInteropHelper(owner).Handle;
+                var screen = System.Windows.Forms.Screen.FromHandle(hwnd);
+                var bounds = screen.Bounds;
+
+                Left = bounds.Left;
+                Top = bounds.Top;
+                Width = bounds.Width;
+                Height = bounds.Height;
             }
             else
             {
