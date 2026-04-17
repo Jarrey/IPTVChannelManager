@@ -1,4 +1,5 @@
-﻿using IPTVChannelManager.Common;
+﻿using System;
+using IPTVChannelManager.Common;
 
 namespace IPTVChannelManager
 {
@@ -20,6 +21,8 @@ namespace IPTVChannelManager
         public const string EpgUrl = nameof(EpgUrl);
         public const string UnicastHost = nameof(UnicastHost);
         public const string ImportExportWithCustomHost = nameof(ImportExportWithCustomHost);
+        public const string LastImportDirectory = nameof(LastImportDirectory);
+        public const string LastExportDirectory = nameof(LastExportDirectory);
 
         protected override void InitSetting()
         {
@@ -28,6 +31,8 @@ namespace IPTVChannelManager
             this[EpgUrl] = Constants.DefaultEpgUrl;
             this[UnicastHost] = string.Empty;
             this[ImportExportWithCustomHost] = true;
+            this[LastImportDirectory] = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            this[LastExportDirectory] = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         }
         #endregion Settings
     }

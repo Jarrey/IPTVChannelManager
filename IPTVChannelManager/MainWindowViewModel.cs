@@ -174,7 +174,7 @@ namespace IPTVChannelManager
                 using (CommonFileDialog openFileDialog = new CommonOpenFileDialog()
                 {
                     Title = nameof(ImportChannels),
-                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    InitialDirectory = AppSettings.Instance.Get(AppSettings.LastImportDirectory) ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                     EnsureFileExists = true,
                     EnsurePathExists = true,
                     EnsureReadOnly = false,
@@ -187,6 +187,7 @@ namespace IPTVChannelManager
                     openFileDialog.Filters.Add(new CommonFileDialogFilter("m3u Files", "*.m3u"));
                     if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok && File.Exists(openFileDialog.FileName))
                     {
+                        AppSettings.Instance.Set(AppSettings.LastImportDirectory, Path.GetDirectoryName(openFileDialog.FileName));
                         var unicastHost = UnicastMulticastSwitch ? UnicastHost : null;
                         IEnumerable<Channel> channels = null;
                         if (openFileDialog.FileName.EndsWith(".txt", StringComparison.InvariantCultureIgnoreCase))
@@ -234,7 +235,7 @@ namespace IPTVChannelManager
                 {
                     Title = nameof(ExportToM3u),
                     DefaultFileName = "IPTV.m3u",
-                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    InitialDirectory = AppSettings.Instance.Get(AppSettings.LastExportDirectory) ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                     EnsurePathExists = true,
                     EnsureReadOnly = false,
                     EnsureValidNames = true,
@@ -244,6 +245,7 @@ namespace IPTVChannelManager
                     saveFileDialog.Filters.Add(new CommonFileDialogFilter("m3u Files", "*.m3u"));
                     if (saveFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
                     {
+                        AppSettings.Instance.Set(AppSettings.LastExportDirectory, Path.GetDirectoryName(saveFileDialog.FileName));
                         string channels = ImportExportHelper.ExportToM3u(Channels, UnicastMulticastSwitch);
                         File.WriteAllText(saveFileDialog.FileName, channels);
                     }
@@ -263,7 +265,7 @@ namespace IPTVChannelManager
                 {
                     Title = nameof(ExportToTxt),
                     DefaultFileName = "IPTV.txt",
-                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    InitialDirectory = AppSettings.Instance.Get(AppSettings.LastExportDirectory) ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                     EnsurePathExists = true,
                     EnsureReadOnly = false,
                     EnsureValidNames = true,
@@ -273,6 +275,7 @@ namespace IPTVChannelManager
                     saveFileDialog.Filters.Add(new CommonFileDialogFilter("txt Files", "*.txt"));
                     if (saveFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
                     {
+                        AppSettings.Instance.Set(AppSettings.LastExportDirectory, Path.GetDirectoryName(saveFileDialog.FileName));
                         string channels = ImportExportHelper.ExportToTxt(Channels, UnicastMulticastSwitch);
                         File.WriteAllText(saveFileDialog.FileName, channels);
                     }
