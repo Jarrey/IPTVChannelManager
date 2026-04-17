@@ -42,14 +42,14 @@
                             </Image.ToolTip>
                         </Image>
                     </Border>
-                    <TextBox Grid.Column="1" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Logo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
-                    <TextBox Grid.Column="2" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Id, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
-                    <TextBox Grid.Column="3" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
+                    <TextBox Grid.Column="1" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Logo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue='--'}" Margin="4 0"/>
+                    <TextBox Grid.Column="2" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Id, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue='--'}" Margin="4 0"/>
+                    <TextBox Grid.Column="3" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue='--'}" Margin="4 0" />
                     <TextBlock Grid.Column="4" VerticalAlignment="Center" TextWrapping="NoWrap" Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4 0"/>
 
                     <ComboBox Grid.Column="5" VerticalAlignment="Center"
                               ItemsSource="{Binding DataContext.ChannelGroups, RelativeSource={RelativeSource AncestorType=Window}}" 
-                              SelectedItem="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                              SelectedItem="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue='--'}"/>
 
                     <CheckBox Grid.Column="6" Checked="IgnoreCheckBoxUpdated" Unchecked="IgnoreCheckBoxUpdated" IsChecked="{Binding Ignore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               VerticalAlignment="Center" Margin="0" HorizontalAlignment="Center" Background="Orange"/>
@@ -197,6 +197,7 @@
                 </Border>
                 <ListBox ItemsSource="{Binding Channels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="0"
                          ItemTemplate="{StaticResource ChannelListItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
+                         VirtualizingPanel.IsVirtualizing="True" ScrollViewer.CanContentScroll="True"
                          common:ItemsControlFilter.By="{Binding Filter, Mode=OneWay}" ItemContainerStyle="{StaticResource ListBoxItemStyle}"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto">
                 </ListBox>
@@ -226,6 +227,7 @@
                     </Border>
                     <ListBox ItemsSource="{Binding NewChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="0"
                              ItemTemplate="{StaticResource NewChannelItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
+                             VirtualizingPanel.IsVirtualizing="True" ScrollViewer.CanContentScroll="True"
                              ItemContainerStyle="{StaticResource ListBoxItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     </ListBox>
                 </DockPanel>
@@ -248,6 +250,7 @@
                     </Border>
                     <ListBox ItemsSource="{Binding OldChannels}" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="0"
                              ItemTemplate="{StaticResource OldChannelItemTemplate}" VirtualizingPanel.VirtualizationMode="Recycling" Background="Transparent"
+                             VirtualizingPanel.IsVirtualizing="True" ScrollViewer.CanContentScroll="True"
                              ItemContainerStyle="{StaticResource ListBoxItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     </ListBox>
                 </DockPanel>
