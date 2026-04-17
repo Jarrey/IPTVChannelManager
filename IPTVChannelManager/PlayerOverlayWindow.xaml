@@ -1,0 +1,57 @@
+﻿<Window x:Class="IPTVChannelManager.PlayerOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent" ShowInTaskbar="False"
+        Topmost="True" IsHitTestVisible="True"
+        Focusable="False" ShowActivated="False">
+    <Grid>
+        <!-- 椤堕儴淇℃伅鏍忥細棰戦亾Logo + 瀹炴椂鏃堕棿 -->
+        <DockPanel x:Name="TopInfoBar" VerticalAlignment="Top" Margin="15,40,15,0">
+            <!-- 宸︿笂瑙掗閬?Logo -->
+            <Border DockPanel.Dock="Left" Background="#60000000" CornerRadius="4" Padding="6,4">
+                <StackPanel Orientation="Horizontal">
+                    <Image x:Name="ChannelLogoImage" Width="48" Height="48" Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock x:Name="ChannelNameText" Foreground="White" FontSize="18"
+                               VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Border>
+            <!-- 鍙充笂瑙掑疄鏃舵椂闂?-->
+            <Border DockPanel.Dock="Right" Background="#60000000" CornerRadius="4" Padding="10,4"
+                    HorizontalAlignment="Right">
+                <TextBlock x:Name="ClockText" Foreground="White" FontSize="14"
+                           FontFamily="Consolas" VerticalAlignment="Center"/>
+            </Border>
+            <UIElement/>
+        </DockPanel>
+
+        <!-- 搴曢儴鎺у埗鏍?-->
+        <Border x:Name="ControlBar" VerticalAlignment="Bottom" Margin="6,0,6,5"
+                Background="#90000000" Padding="10,12">
+            <DockPanel>
+                <!-- 鍙充晶锛氶煶閲忔帶鍒?-->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,5,0">
+                    <Button x:Name="MuteButton" Click="MuteButton_Click"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                            VerticalAlignment="Center" Padding="0">
+                        <TextBlock x:Name="VolumeIcon" Text="&#x1F50A;" FontSize="18" Foreground="White" Height="60"/>
+                    </Button>
+                    <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100" Value="100"
+                            VerticalAlignment="Center" Margin="4,0,0,0"
+                            ValueChanged="VolumeSlider_ValueChanged"
+                            Style="{x:Null}"/>
+                </StackPanel>
+
+                <!-- 宸︿晶锛氬叏灞?杩樺師鎸夐挳 -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,0,0">
+                    <Button x:Name="FullscreenButton" Click="FullscreenButton_Click"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0">
+                        <TextBlock x:Name="FullscreenIcon" Text="&#x26F6;" FontSize="20" Foreground="White"/>
+                    </Button>
+                </StackPanel>
+                <UIElement/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

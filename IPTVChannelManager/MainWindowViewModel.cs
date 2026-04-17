@@ -363,7 +363,7 @@ namespace IPTVChannelManager
                     _playerWindow.Activate();
                 }
                 _playerWindow.Title = $"{channel.Name} - {streamUrl}";
-                _playerWindow.PlayNetworkStream(streamUrl);
+                _playerWindow.PlayNetworkStream(streamUrl, channel.Name, channel.LogoUrl);
             }
             catch (Exception ex)
             {
