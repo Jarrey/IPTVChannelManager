@@ -13,7 +13,7 @@ namespace IPTVChannelManager
     {
         // ── Clock ────────────────────────────────────────────────────────────
 
-        private string _clockText = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        private string _clockText = DateTime.Now.ToString(Constants.OverlayClockFormat);
         public string ClockText
         {
             get => _clockText;
@@ -36,7 +36,7 @@ namespace IPTVChannelManager
             set => SetProperty(ref _channelLogo, value);
         }
 
-        private Thickness _topInfoBarMargin = new Thickness(15, 40, 15, 0);
+        private Thickness _topInfoBarMargin = new Thickness(Constants.OverlayTopBarMarginHorizontal, Constants.OverlayTopBarMarginTopNormal, Constants.OverlayTopBarMarginHorizontal, 0);
         public Thickness TopInfoBarMargin
         {
             get => _topInfoBarMargin;
@@ -54,14 +54,14 @@ namespace IPTVChannelManager
 
         // ── Fullscreen ────────────────────────────────────────────────────────
 
-        private string _fullscreenIcon = "\u26F6";
+        private string _fullscreenIcon = Constants.OverlayIconFullscreen;
         public string FullscreenIcon
         {
             get => _fullscreenIcon;
             set => SetProperty(ref _fullscreenIcon, value);
         }
 
-        private string _fullscreenTooltip = "Fullscreen";
+        private string _fullscreenTooltip = Constants.OverlayTooltipFullscreen;
         public string FullscreenTooltip
         {
             get => _fullscreenTooltip;
@@ -70,7 +70,7 @@ namespace IPTVChannelManager
 
         // ── Volume ────────────────────────────────────────────────────────────
 
-        private int _volume = 50;
+        private int _volume = Constants.OverlayDefaultVolume;
         /// <summary>Volume level 0–100.</summary>
         public int Volume
         {
@@ -84,7 +84,7 @@ namespace IPTVChannelManager
 
         public string VolumePctText => $"{_volume}%";
 
-        private string _volumeIcon = "\U0001F50A";
+        private string _volumeIcon = Constants.OverlayIconVolume;
         public string VolumeIcon
         {
             get => _volumeIcon;
@@ -98,6 +98,26 @@ namespace IPTVChannelManager
         {
             get => _mediaInfoText;
             set => SetProperty(ref _mediaInfoText, value);
+        }
+
+        // ── Commands ──────────────────────────────────────────────────────────
+
+        /// <summary>Command bound to the fullscreen/restore button.</summary>
+        public DelegateCommand ToggleFullscreenCommand { get; }
+
+        /// <summary>Command bound to the mute button.</summary>
+        public DelegateCommand ToggleMuteCommand { get; }
+
+        // ── Constructor ───────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Commands require external actions injected at construction time so the
+        /// ViewModel stays decoupled from the host window.
+        /// </summary>
+        public PlayerOverlayViewModel(Action toggleFullscreen, Action toggleMute)
+        {
+            ToggleFullscreenCommand = new DelegateCommand(toggleFullscreen);
+            ToggleMuteCommand       = new DelegateCommand(toggleMute);
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
@@ -128,12 +148,12 @@ namespace IPTVChannelManager
         /// </summary>
         public void SetFullscreen(bool isFullscreen)
         {
-            FullscreenIcon = isFullscreen ? "\u29C9" : "\u26F6";
-            FullscreenTooltip = isFullscreen ? "Restore" : "Fullscreen";
+            FullscreenIcon = isFullscreen ? Constants.OverlayIconRestore : Constants.OverlayIconFullscreen;
+            FullscreenTooltip = isFullscreen ? Constants.OverlayTooltipRestore : Constants.OverlayTooltipFullscreen;
             // In fullscreen the title bar is hidden — no need to offset the top bar
             TopInfoBarMargin = isFullscreen
-                ? new Thickness(15, 10, 15, 0)
-                : new Thickness(15, 40, 15, 0);
+                ? new Thickness(Constants.OverlayTopBarMarginHorizontal, Constants.OverlayTopBarMarginTopFullscreen, Constants.OverlayTopBarMarginHorizontal, 0)
+                : new Thickness(Constants.OverlayTopBarMarginHorizontal, Constants.OverlayTopBarMarginTopNormal, Constants.OverlayTopBarMarginHorizontal, 0);
         }
 
         /// <summary>
@@ -141,7 +161,7 @@ namespace IPTVChannelManager
         /// </summary>
         public void SetMuted(bool isMuted)
         {
-            VolumeIcon = isMuted ? "\U0001F507" : "\U0001F50A";
+            VolumeIcon = isMuted ? Constants.OverlayIconMute : Constants.OverlayIconVolume;
         }
 
         /// <summary>

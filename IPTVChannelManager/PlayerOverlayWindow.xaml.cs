@@ -6,7 +6,7 @@ namespace IPTVChannelManager
 {
     /// <summary>
     /// Transparent overlay window rendered on top of the VLC VideoView to work around the WPF Airspace limitation.
-    /// All UI state is managed by <see cref="PlayerOverlayViewModel"/> via data binding.
+    /// All UI state and commands are managed by <see cref="PlayerOverlayViewModel"/> via data binding.
     /// </summary>
     public partial class PlayerOverlayWindow : Window
     {
@@ -14,26 +14,21 @@ namespace IPTVChannelManager
         private readonly DispatcherTimer _hideTimer;
 
         /// <summary>The ViewModel that drives all bindings in this window.</summary>
-        public PlayerOverlayViewModel VM { get; } = new PlayerOverlayViewModel();
+        public PlayerOverlayViewModel VM { get; }
 
-        /// <summary>Fired when the fullscreen/restore button is clicked.</summary>
-        public event Action? FullscreenToggleRequested;
-
-        /// <summary>Fired when the mute button is clicked.</summary>
-        public event Action? MuteToggleRequested;
-
-        public PlayerOverlayWindow()
+        public PlayerOverlayWindow(Action toggleFullscreen, Action toggleMute)
         {
+            VM = new PlayerOverlayViewModel(toggleFullscreen, toggleMute);
             InitializeComponent();
             DataContext = VM;
 
             // Real-time clock, refreshed every second
-            _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _clockTimer.Tick += (s, e) => VM.ClockText = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Constants.OverlayClockIntervalSeconds) };
+            _clockTimer.Tick += (s, e) => VM.ClockText = DateTime.Now.ToString(Constants.OverlayClockFormat);
             _clockTimer.Start();
 
             // Auto-hide timer for the control bar
-            _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Constants.OverlayHideDelaySeconds) };
             _hideTimer.Tick += (s, e) =>
             {
                 _hideTimer.Stop();
@@ -94,12 +89,6 @@ namespace IPTVChannelManager
             }
         }
 
-        private void FullscreenButton_Click(object sender, RoutedEventArgs e)
-            => FullscreenToggleRequested?.Invoke();
-
-        private void MuteButton_Click(object sender, RoutedEventArgs e)
-            => MuteToggleRequested?.Invoke();
-
         protected override void OnClosed(EventArgs e)
         {
             _clockTimer.Stop();
@@ -108,5 +97,4 @@ namespace IPTVChannelManager
         }
     }
 }
-
 

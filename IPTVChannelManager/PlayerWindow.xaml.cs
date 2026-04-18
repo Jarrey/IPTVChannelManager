@@ -57,33 +57,32 @@ namespace IPTVChannelManager
         #region Overlay
         private void InitOverlay()
         {
-            _overlay = new PlayerOverlayWindow { Owner = this };
-            _overlay.FullscreenToggleRequested += ToggleFullscreen;
+            _overlay = new PlayerOverlayWindow(
+                toggleFullscreen: ToggleFullscreen,
+                toggleMute: () =>
+                {
+                    _isMuted = !_isMuted;
+                    if (_mediaPlayer != null)
+                        _mediaPlayer.Volume = _isMuted ? 0 : _lastVolume;
+                    _overlay!.VM.SetMuted(_isMuted);
+                })
+            { Owner = this };
 
-            // Volume changes come from the TwoWay-bound VM.Volume property
+            // Volume slider is TwoWay-bound to VM.Volume — sync changes to VLC
             _overlay.VM.PropertyChanged += (s, e) =>
             {
-                if (e.PropertyName == nameof(PlayerOverlayViewModel.Volume))
+                if (e.PropertyName != nameof(PlayerOverlayViewModel.Volume)) return;
+                int volume = _overlay.VM.Volume;
+                if (_mediaPlayer != null)
+                    _mediaPlayer.Volume = volume;
+                _lastVolume = volume;
+                if (_isMuted && volume > 0)
                 {
-                    int volume = _overlay.VM.Volume;
-                    if (_mediaPlayer != null)
-                        _mediaPlayer.Volume = volume;
-                    _lastVolume = volume;
-                    if (_isMuted && volume > 0)
-                    {
-                        _isMuted = false;
-                        _overlay.VM.SetMuted(false);
-                    }
+                    _isMuted = false;
+                    _overlay.VM.SetMuted(false);
                 }
             };
 
-            _overlay.MuteToggleRequested += () =>
-            {
-                _isMuted = !_isMuted;
-                if (_mediaPlayer != null)
-                    _mediaPlayer.Volume = _isMuted ? 0 : _lastVolume;
-                _overlay.VM.SetMuted(_isMuted);
-            };
             _overlay.SyncPosition(this);
             _overlay.Show();
 
