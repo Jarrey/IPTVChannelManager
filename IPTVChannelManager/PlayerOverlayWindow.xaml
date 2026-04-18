@@ -6,9 +6,9 @@
         Topmost="True" IsHitTestVisible="True"
         Focusable="False" ShowActivated="False">
     <Grid>
-        <!-- 椤堕儴淇℃伅鏍忥細棰戦亾Logo + 瀹炴椂鏃堕棿 -->
+        <!-- Top info bar: Channel Logo + Real-time clock -->
         <DockPanel x:Name="TopInfoBar" VerticalAlignment="Top" Margin="15,40,15,0">
-            <!-- 宸︿笂瑙掗閬?Logo -->
+            <!-- Top-left: Channel Logo -->
             <Border DockPanel.Dock="Left" Background="#60000000" CornerRadius="4" Padding="6,4">
                 <StackPanel Orientation="Horizontal">
                     <Image x:Name="ChannelLogoImage" Width="48" Height="48" Stretch="Uniform"
@@ -17,7 +17,7 @@
                                VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="SemiBold"/>
                 </StackPanel>
             </Border>
-            <!-- 鍙充笂瑙掑疄鏃舵椂闂?-->
+            <!-- Top-right: Real-time clock -->
             <Border DockPanel.Dock="Right" Background="#60000000" CornerRadius="4" Padding="10,4"
                     HorizontalAlignment="Right">
                 <TextBlock x:Name="ClockText" Foreground="White" FontSize="14"
@@ -26,11 +26,11 @@
             <UIElement/>
         </DockPanel>
 
-        <!-- 搴曢儴鎺у埗鏍?-->
+        <!-- Bottom control bar -->
         <Border x:Name="ControlBar" VerticalAlignment="Bottom" Margin="6,0,6,5"
                 Background="#90000000" Padding="10,12">
             <DockPanel>
-                <!-- 鍙充晶锛氶煶閲忔帶鍒?-->
+                <!-- Right side: Volume control -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,5,0">
                     <Button x:Name="MuteButton" Click="MuteButton_Click"
                             Background="Transparent" BorderThickness="0" Cursor="Hand"
@@ -43,7 +43,7 @@
                             Style="{x:Null}"/>
                 </StackPanel>
 
-                <!-- 宸︿晶锛氬叏灞?杩樺師鎸夐挳 -->
+                <!-- Left side: Fullscreen / Restore button -->
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,0,0">
                     <Button x:Name="FullscreenButton" Click="FullscreenButton_Click"
                             Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0">

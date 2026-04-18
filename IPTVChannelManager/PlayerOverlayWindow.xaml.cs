@@ -5,8 +5,7 @@ using System.Windows.Threading;
 namespace IPTVChannelManager
 {
     /// <summary>
-    /// PlayerOverlayWindow.xaml 的交互逻辑
-    /// 透明覆盖窗口，解决 VLC HwndHost 的 Airspace 问题
+    /// Transparent overlay window rendered on top of the VLC VideoView to work around the WPF Airspace limitation.
     /// </summary>
     public partial class PlayerOverlayWindow : Window
     {
@@ -26,13 +25,13 @@ namespace IPTVChannelManager
         {
             InitializeComponent();
 
-            // 实时时钟，每秒刷新
+            // Real-time clock, refreshed every second
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (s, e) => ClockText.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             _clockTimer.Start();
             ClockText.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-            // 控制栏自动隐藏计时器
+            // Auto-hide timer for the control bar
             _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
             _hideTimer.Tick += (s, e) =>
             {
@@ -40,12 +39,12 @@ namespace IPTVChannelManager
                 ControlBar.Visibility = Visibility.Collapsed;
             };
 
-            // 初始隐藏控制栏
+            // Hide control bar initially
             ControlBar.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
-        /// 显示控制栏并重置自动隐藏计时器（由宿主窗口的鼠标移动调用）
+        /// Show the control bar and reset the auto-hide timer (called by the host window on mouse move).
         /// </summary>
         public void ShowControlBar()
         {
@@ -55,7 +54,7 @@ namespace IPTVChannelManager
         }
 
         /// <summary>
-        /// 隐藏控制栏
+        /// Immediately hide the control bar.
         /// </summary>
         public void HideControlBar()
         {
@@ -64,7 +63,7 @@ namespace IPTVChannelManager
         }
 
         /// <summary>
-        /// 设置频道信息
+        /// Set the channel name and logo displayed in the top-left info bar.
         /// </summary>
         public void SetChannelInfo(string channelName, string logoUrl)
         {
@@ -79,25 +78,25 @@ namespace IPTVChannelManager
             }
             catch
             {
-                // logo 加载失败不影响播放
+                // Logo load failure should not affect playback
             }
         }
 
         /// <summary>
-        /// 更新全屏图标显示
+        /// Update the fullscreen button icon and adjust top bar margin for windowed vs fullscreen.
         /// </summary>
         public void UpdateFullscreenIcon(bool isFullscreen)
         {
             FullscreenIcon.Text = isFullscreen ? "\u29C9" : "\u26F6";
             FullscreenButton.ToolTip = isFullscreen ? "还原" : "全屏";
-            // 全屏时顶部不需要避让标题栏，窗口模式下需要
+            // In fullscreen the title bar is hidden, so no need to offset the top bar
             TopInfoBar.Margin = isFullscreen
                 ? new Thickness(15, 10, 15, 0)
                 : new Thickness(15, 40, 15, 0);
         }
 
         /// <summary>
-        /// 更新静音图标
+        /// Update the mute button icon.
         /// </summary>
         public void UpdateMuteIcon(bool isMuted)
         {

@@ -11,7 +11,7 @@ using System.Windows.Threading;
 namespace IPTVChannelManager
 {
     /// <summary>
-    /// PlayerWindow.xaml 的交互逻辑
+    /// Code-behind for PlayerWindow.xaml
     /// </summary>
     public partial class PlayerWindow : BaseWindow, IDisposable
     {
@@ -53,7 +53,7 @@ namespace IPTVChannelManager
             InitOverlay();
         }
 
-        #region 覆盖层
+        #region Overlay
         private void InitOverlay()
         {
             _overlay = new PlayerOverlayWindow { Owner = this };
@@ -79,7 +79,7 @@ namespace IPTVChannelManager
             _overlay.SyncPosition(this);
             _overlay.Show();
 
-            // 鼠标移动检测计时器（通过全局钩子触发）
+            // Mouse movement detection timer (polled via global hook)
             _mouseMoveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _lastMousePos = GetCursorPos();
             _mouseMoveTimer.Tick += (s, e) =>
@@ -108,14 +108,14 @@ namespace IPTVChannelManager
             GetCursorPos(out POINT pt);
             return new System.Windows.Point(pt.x, pt.y);
         }
-        #endregion 覆盖层
+        #endregion Overlay
 
-        #region 鼠标钩子双击检测
+        #region Low-level Mouse Hook - Double-click Detection
         private const int WH_MOUSE_LL = 14;
         private const int WM_LBUTTONDOWN = 0x0201;
 
         private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
-        private LowLevelMouseProc _mouseProc;  // 防止 GC 回收
+        private LowLevelMouseProc _mouseProc;  // Keep reference to prevent GC collection
         private IntPtr _mouseHookHandle;
         private DateTime _lastClickTime = DateTime.MinValue;
 
@@ -178,7 +178,7 @@ namespace IPTVChannelManager
             {
                 var hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
 
-                // 检查点击是否在本窗口范围内
+                // Check if click is within this window's bounds
                 if (IsClickInsideThisWindow(hookStruct.pt))
                 {
                     var now = DateTime.UtcNow;
@@ -186,7 +186,7 @@ namespace IPTVChannelManager
 
                     if (elapsed <= GetDoubleClickTime())
                     {
-                        _lastClickTime = DateTime.MinValue; // 重置，防止三击触发
+                        _lastClickTime = DateTime.MinValue; // Reset to prevent triple-click trigger
                         Dispatcher.Invoke(ToggleFullscreen);
                     }
                     else
@@ -204,10 +204,10 @@ namespace IPTVChannelManager
             if (wndHelper.Handle == IntPtr.Zero) return false;
 
             IntPtr clickedWnd = WindowFromPoint(pt);
-            // 点击的窗口是本窗口本身或其子窗口（包括 VLC 渲染窗口）
+            // The clicked window is this window itself or a child window (including VLC render window)
             return clickedWnd == wndHelper.Handle || IsChild(wndHelper.Handle, clickedWnd);
         }
-        #endregion 鼠标钩子双击检测
+        #endregion Low-level Mouse Hook - Double-click Detection
 
         public void PlayNetworkStream(string streamUrl, string channelName = null, string logoUrl = null)
         {
@@ -225,7 +225,7 @@ namespace IPTVChannelManager
             }
         }
 
-        #region 全屏切换
+        #region Fullscreen Toggle
         private void PlayerWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (_isFullscreen && e.Key == Key.Escape)
@@ -236,7 +236,7 @@ namespace IPTVChannelManager
         {
             if (!_isFullscreen)
             {
-                // 保存当前窗口状态
+                // Save current window state
                 _prevWindowState = WindowState;
                 _prevResizeMode = ResizeMode;
                 _prevLeft = Left;
@@ -244,18 +244,18 @@ namespace IPTVChannelManager
                 _prevWidth = Width;
                 _prevHeight = Height;
 
-                // 隐藏自定义标题栏和边框
+                // Hide custom title bar and border
                 SetTitleBarVisibility(false);
 
-                // 进入全屏
+                // Enter fullscreen
                 ResizeMode = ResizeMode.NoResize;
-                WindowState = WindowState.Normal;   // 先还原，避免最大化切换不生效
+                WindowState = WindowState.Normal;   // Reset first to ensure Maximized transition works
                 WindowState = WindowState.Maximized;
                 _isFullscreen = true;
             }
             else
             {
-                // 退出全屏，恢复原始状态
+                // Exit fullscreen, restore previous state
                 ResizeMode = _prevResizeMode;
                 WindowState = _prevWindowState;
                 Left = _prevLeft;
@@ -263,7 +263,7 @@ namespace IPTVChannelManager
                 Width = _prevWidth;
                 Height = _prevHeight;
 
-                // 恢复标题栏和边框
+                // Restore title bar and border
                 SetTitleBarVisibility(true);
                 _isFullscreen = false;
             }
@@ -273,7 +273,7 @@ namespace IPTVChannelManager
         }
 
         /// <summary>
-        /// 隐藏/显示 BaseWindow 模板中的标题栏和边框
+        /// Show or hide the title bar and border defined in BaseWindow's ControlTemplate.
         /// </summary>
         private void SetTitleBarVisibility(bool visible)
         {
@@ -285,7 +285,7 @@ namespace IPTVChannelManager
                 var g = (System.Windows.Controls.Grid)grid;
                 if (g.RowDefinitions.Count > 0)
                     g.RowDefinitions[0].Height = visible ? new GridLength(30) : new GridLength(0);
-                // 模板在 Maximized 时会设置 Margin="5"，全屏时清零
+                // The template sets Margin="5" when Maximized; clear it in fullscreen
                 g.Margin = visible ? new Thickness(5) : new Thickness(0);
             }
 
@@ -295,7 +295,7 @@ namespace IPTVChannelManager
                 border.Padding = visible ? new Thickness(0) : new Thickness(0);
             }
 
-            // 全屏时移除 WindowChrome 的标题栏区域，退出时恢复
+            // Remove WindowChrome caption area in fullscreen; restore on exit
             var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
             if (chrome != null)
             {
@@ -303,7 +303,7 @@ namespace IPTVChannelManager
                 chrome.ResizeBorderThickness = visible ? new Thickness(5) : new Thickness(0);
             }
         }
-        #endregion 全屏切换
+        #endregion Fullscreen Toggle
 
         protected override void OnClosed(EventArgs e)
         {
