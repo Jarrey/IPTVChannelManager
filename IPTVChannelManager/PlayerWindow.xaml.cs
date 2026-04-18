@@ -381,6 +381,8 @@ namespace IPTVChannelManager
             _mediaPlayer?.Stop();
             _mediaPlayer?.Dispose();
             _libVlc?.Dispose();
+            Loaded -= PlayerWindow_Loaded;
+            KeyDown -= PlayerWindow_KeyDown;
             IsDisposed = true;
         }
     }

@@ -22,8 +22,10 @@ namespace IPTVChannelManager
 
         private void SettingButtonClick(object sender, RoutedEventArgs e)
         {
-            var settingWindow = new SettingWindow();
-            settingWindow.Owner = this;
+            var settingWindow = new SettingWindow
+            {
+                Owner = this
+            };
             settingWindow.ShowDialog();
         }
     }

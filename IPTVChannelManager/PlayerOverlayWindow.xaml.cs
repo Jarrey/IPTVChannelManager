@@ -83,9 +83,9 @@ namespace IPTVChannelManager
             else
             {
                 Left = owner.Left;
-                Top = owner.Top;
+                Top = owner.Top + 30;
                 Width = owner.ActualWidth;
-                Height = owner.ActualHeight;
+                Height = owner.ActualHeight - 30;
             }
         }
 
