@@ -25,7 +25,7 @@ namespace IPTVChannelManager
         private ResizeMode _prevResizeMode;
         private double _prevLeft, _prevTop, _prevWidth, _prevHeight;
         private bool _isMuted;
-        private int _lastVolume = 100;
+        private int _lastVolume = 50;
 
         public PlayerWindow()
         {
@@ -35,6 +35,7 @@ namespace IPTVChannelManager
             _mediaPlayer = new MediaPlayer(_libVlc);
             _mediaPlayer.EnableHardwareDecoding = true;
             VideoPlayer.MediaPlayer = _mediaPlayer;
+            _mediaPlayer.Volume = 50;
 
             Loaded += PlayerWindow_Loaded;
             KeyDown += PlayerWindow_KeyDown;
@@ -58,26 +59,37 @@ namespace IPTVChannelManager
         {
             _overlay = new PlayerOverlayWindow { Owner = this };
             _overlay.FullscreenToggleRequested += ToggleFullscreen;
-            _overlay.VolumeChanged += volume =>
+
+            // Volume changes come from the TwoWay-bound VM.Volume property
+            _overlay.VM.PropertyChanged += (s, e) =>
             {
-                if (_mediaPlayer != null)
-                    _mediaPlayer.Volume = volume;
-                _lastVolume = volume;
-                if (_isMuted && volume > 0)
+                if (e.PropertyName == nameof(PlayerOverlayViewModel.Volume))
                 {
-                    _isMuted = false;
-                    _overlay.UpdateMuteIcon(false);
+                    int volume = _overlay.VM.Volume;
+                    if (_mediaPlayer != null)
+                        _mediaPlayer.Volume = volume;
+                    _lastVolume = volume;
+                    if (_isMuted && volume > 0)
+                    {
+                        _isMuted = false;
+                        _overlay.VM.SetMuted(false);
+                    }
                 }
             };
+
             _overlay.MuteToggleRequested += () =>
             {
                 _isMuted = !_isMuted;
                 if (_mediaPlayer != null)
                     _mediaPlayer.Volume = _isMuted ? 0 : _lastVolume;
-                _overlay.UpdateMuteIcon(_isMuted);
+                _overlay.VM.SetMuted(_isMuted);
             };
             _overlay.SyncPosition(this);
             _overlay.Show();
+
+            // Refresh media info when a new track starts playing
+            _mediaPlayer.ESAdded += (s, e) => Dispatcher.Invoke(RefreshMediaInfo);
+            _mediaPlayer.Playing += (s, e) => Dispatcher.Invoke(RefreshMediaInfo);
 
             // Mouse movement detection timer (polled via global hook)
             _mouseMoveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
@@ -107,6 +119,56 @@ namespace IPTVChannelManager
         {
             GetCursorPos(out POINT pt);
             return new System.Windows.Point(pt.x, pt.y);
+        }
+
+        /// <summary>
+        /// Read codec info from the active media tracks and push it to the overlay.
+        /// </summary>
+        private void RefreshMediaInfo()
+        {
+            if (_overlay == null || _mediaPlayer == null) return;
+
+            string videoCodec = string.Empty;
+            string audioCodec = string.Empty;
+            int audioChannels = 0;
+
+            try
+            {
+                var tracks = _mediaPlayer.Media?.Tracks;
+                if (tracks != null)
+                {
+                    foreach (var track in tracks)
+                    {
+                        if (track.TrackType == TrackType.Video && string.IsNullOrEmpty(videoCodec))
+                        {
+                            videoCodec = FourCCToString(track.Codec);
+                        }
+                        else if (track.TrackType == TrackType.Audio && string.IsNullOrEmpty(audioCodec))
+                        {
+                            audioCodec = FourCCToString(track.Codec);
+                            audioChannels = (int)(track.Data.Audio.Channels);
+                        }
+                    }
+                }
+            }
+            catch { /* ignore, non-critical */ }
+
+            _overlay.UpdateMediaInfo(videoCodec, audioCodec, audioChannels);
+        }
+
+        /// <summary>
+        /// Convert a VLC FourCC uint to a human-readable codec name string.
+        /// </summary>
+        private static string FourCCToString(uint fourcc)
+        {
+            if (fourcc == 0) return string.Empty;
+            byte[] bytes = BitConverter.GetBytes(fourcc);
+            // FourCC is stored little-endian; convert to ASCII chars
+            var s = new string(new[]
+            {
+                (char)bytes[0], (char)bytes[1], (char)bytes[2], (char)bytes[3]
+            }).TrimEnd('\0').Trim();
+            return s;
         }
         #endregion Overlay
 

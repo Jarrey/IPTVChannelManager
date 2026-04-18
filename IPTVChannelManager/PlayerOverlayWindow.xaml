@@ -7,50 +7,60 @@
         Focusable="False" ShowActivated="False">
     <Grid>
         <!-- Top info bar: Channel Logo + Real-time clock -->
-        <DockPanel x:Name="TopInfoBar" VerticalAlignment="Top" Margin="15,40,15,0">
+        <DockPanel VerticalAlignment="Top" Margin="{Binding TopInfoBarMargin}">
             <!-- Top-left: Channel Logo -->
             <Border DockPanel.Dock="Left" Background="#60000000" CornerRadius="4" Padding="6,4">
                 <StackPanel Orientation="Horizontal">
-                    <Image x:Name="ChannelLogoImage" Width="48" Height="48" Stretch="Uniform"
+                    <Image Source="{Binding ChannelLogo}" Width="48" Height="48" Stretch="Uniform"
                            RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock x:Name="ChannelNameText" Foreground="White" FontSize="18"
+                    <TextBlock Text="{Binding ChannelName}" Foreground="White" FontSize="18"
                                VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="SemiBold"/>
                 </StackPanel>
             </Border>
             <!-- Top-right: Real-time clock -->
             <Border DockPanel.Dock="Right" Background="#60000000" CornerRadius="4" Padding="10,4"
                     HorizontalAlignment="Right">
-                <TextBlock x:Name="ClockText" Foreground="White" FontSize="14"
+                <TextBlock Text="{Binding ClockText}" Foreground="White" FontSize="14"
                            FontFamily="Consolas" VerticalAlignment="Center"/>
             </Border>
             <UIElement/>
         </DockPanel>
 
         <!-- Bottom control bar -->
-        <Border x:Name="ControlBar" VerticalAlignment="Bottom" Margin="6,0,6,5"
-                Background="#90000000" Padding="10,12">
-            <DockPanel>
+        <Border VerticalAlignment="Bottom" Margin="6,0,6,5"
+                Background="#90000000" Padding="10,8"
+                Visibility="{Binding ControlBarVisibility}">
+            <DockPanel LastChildFill="True">
+                <!-- Left side: Fullscreen / Restore button -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,8,0">
+                    <Button x:Name="FullscreenButton" Click="FullscreenButton_Click"
+                            ToolTip="{Binding FullscreenTooltip}"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0">
+                        <TextBlock Text="{Binding FullscreenIcon}" FontSize="20" Foreground="White"/>
+                    </Button>
+                </StackPanel>
+
                 <!-- Right side: Volume control -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,5,0">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,5,0">
                     <Button x:Name="MuteButton" Click="MuteButton_Click"
                             Background="Transparent" BorderThickness="0" Cursor="Hand"
                             VerticalAlignment="Center" Padding="0">
-                        <TextBlock x:Name="VolumeIcon" Text="&#x1F50A;" FontSize="18" Foreground="White" Height="60"/>
+                        <TextBlock Text="{Binding VolumeIcon}" FontSize="18" Foreground="White" Height="60"/>
                     </Button>
-                    <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100" Value="100"
-                            VerticalAlignment="Center" Margin="4,0,0,0"
-                            ValueChanged="VolumeSlider_ValueChanged"
+                    <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100"
+                            Value="{Binding Volume, Mode=TwoWay}"
+                            VerticalAlignment="Center" Margin="6,0,0,0"
                             Style="{x:Null}"/>
+                    <!-- Volume percentage label -->
+                    <TextBlock Text="{Binding VolumePctText}" Foreground="White" FontSize="12"
+                               FontFamily="Consolas" VerticalAlignment="Center" Margin="6,0,0,0" Width="36"
+                               TextAlignment="Right"/>
                 </StackPanel>
 
-                <!-- Left side: Fullscreen / Restore button -->
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,0,0">
-                    <Button x:Name="FullscreenButton" Click="FullscreenButton_Click"
-                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="0">
-                        <TextBlock x:Name="FullscreenIcon" Text="&#x26F6;" FontSize="20" Foreground="White"/>
-                    </Button>
-                </StackPanel>
-                <UIElement/>
+                <!-- Center: Media stream info (video codec, audio codec, channels) -->
+                <TextBlock Text="{Binding MediaInfoText}" Foreground="#CCFFFFFF" FontSize="12"
+                           FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Center"
+                           HorizontalAlignment="Center" TextWrapping="NoWrap"/>
             </DockPanel>
         </Border>
     </Grid>
