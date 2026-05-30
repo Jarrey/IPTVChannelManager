@@ -9,7 +9,7 @@
         <!-- Top info bar: Channel Logo + Real-time clock -->
         <DockPanel VerticalAlignment="Top" Margin="{Binding TopInfoBarMargin}">
             <!-- Top-left: Channel Logo -->
-            <Border DockPanel.Dock="Left" Background="#60000000" CornerRadius="4" Padding="5,4">
+            <Border DockPanel.Dock="Left" Background="#60000000" CornerRadius="4" Padding="20,6">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="{Binding ChannelLogo}" Height="48" Stretch="Uniform"
                            RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -18,7 +18,7 @@
                 </StackPanel>
             </Border>
             <!-- Top-right: Real-time clock -->
-            <Border DockPanel.Dock="Right" Background="#60000000" CornerRadius="4" Padding="5,4"
+            <Border DockPanel.Dock="Right" Background="#60000000" CornerRadius="4" Padding="20,6"
                     HorizontalAlignment="Right">
                 <TextBlock Text="{Binding ClockText}" Foreground="#60FFFFFF" FontSize="24"
                            FontFamily="Arial" VerticalAlignment="Center"/>
@@ -27,8 +27,8 @@
         </DockPanel>
 
         <!-- Bottom control bar -->
-        <Border VerticalAlignment="Bottom" Margin="6,0,6,6" CornerRadius="5"
-                Background="#90000000" Padding="10,8"
+        <Border VerticalAlignment="Bottom" Margin="20,0,20,20" CornerRadius="5"
+                Background="#90000000" Padding="10"
                 Visibility="{Binding ControlBarVisibility}">
             <DockPanel LastChildFill="True">
                 <!-- Left side: Fullscreen / Restore button -->
