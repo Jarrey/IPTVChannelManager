@@ -1,0 +1,275 @@
+<common:BaseWindow x:Class="IPTVChannelManager.ScannerWindow"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                   xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+                   xmlns:local="clr-namespace:IPTVChannelManager"
+                   xmlns:common="clr-namespace:IPTVChannelManager.Common"
+                   mc:Ignorable="d" WindowStartupLocation="CenterScreen"
+                   Icon="tv.ico" Title="IPTV Scanner" MinHeight="700" MinWidth="1100" Foreground="#CCC">
+
+    <common:BaseWindow.Resources>
+
+        <!-- Log entry template -->
+        <DataTemplate x:Key="LogEntryTemplate" DataType="{x:Type local:ScanLogEntry}">
+            <TextBlock Text="{Binding Message}" Foreground="{Binding Foreground}"
+                       FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap"/>
+        </DataTemplate>
+
+        <!-- Scanned channel item template -->
+        <DataTemplate x:Key="ScanChannelItemTemplate" DataType="{x:Type local:Channel}">
+            <DockPanel Background="#3A4A5A" Margin="0">
+                <Button DockPanel.Dock="Left" Margin="0" Width="30" Padding="5 0"
+                        VerticalContentAlignment="Center" Foreground="White"
+                        ToolTip="Add to database"
+                        Command="{Binding DataContext.AddChannelCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        CommandParameter="{Binding}">
+                    <materialDesign:PackIcon Kind="DatabasePlus"/>
+                </Button>
+                <Button DockPanel.Dock="Left" Margin="0" Width="30" Padding="5 0"
+                        VerticalContentAlignment="Center" Foreground="White"
+                        ToolTip="Preview in player"
+                        Command="{Binding DataContext.PreviewChannelCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        CommandParameter="{Binding}">
+                    <materialDesign:PackIcon Kind="Play"/>
+                </Button>
+                <Grid VerticalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalAlignment="Stretch" Margin="4 0" TextWrapping="NoWrap"
+                             Foreground="White" Background="#3D414F" BorderThickness="0" Padding="5 0"
+                             VerticalContentAlignment="Center"
+                             materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
+                             ToolTip="{Binding Name}"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Url}"
+                               VerticalAlignment="Center" Margin="4 0"
+                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                               ToolTip="{Binding Url}" Foreground="#AAD4F5"/>
+                </Grid>
+            </DockPanel>
+        </DataTemplate>
+
+        <Style x:Key="ScanListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <!-- Label style for config row -->
+        <Style x:Key="ConfigLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="8 0 3 0"/>
+        </Style>
+
+        <!-- Config TextBox style — matches MainWindow filter TextBox -->
+        <Style x:Key="ConfigTextBoxStyle" TargetType="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="0 0 4 0"/>
+            <Setter Property="Padding" Value="5 0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#3D414F"/>
+            <Setter Property="BorderThickness" Value="0 0 0 1"/>
+            <Setter Property="materialDesign:TextFieldAssist.DecorationVisibility" Value="Collapsed"/>
+            <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="5 0"/>
+        </Style>
+
+    </common:BaseWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════ Config Panel ═══════════════════ -->
+        <Border Grid.Row="0" Background="Transparent" Padding="6 4" BorderThickness="0">
+            <WrapPanel Orientation="Horizontal">
+
+                <!-- Unicast / Multicast switch (same as MainWindow) -->
+                <CheckBox Content="ON: Unicast | OFF: Multicast"
+                          IsChecked="{Binding UseUnicast, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          IsEnabled="{Binding IsNotScanning}"
+                          VerticalAlignment="Center" Margin="4 0 8 0"
+                          ToolTip="ON: uses the protocol and path from UnicastHost (configured in Settings) to build scan URLs. OFF: uses multicast format rtp://"/>
+
+                <!-- Effective URL pattern (read-only) -->
+                <TextBlock Text="URL Pattern:" Style="{StaticResource ConfigLabelStyle}"/>
+                <TextBlock Text="{Binding UrlPatternDisplay, Mode=OneWay}"
+                           VerticalAlignment="Center" Margin="2 0 12 0"
+                           Foreground="#4DD0E1" FontFamily="Consolas" FontSize="11"
+                           ToolTip="The URL pattern used for scanning; protocol and path are taken from the UnicastHost setting"/>
+
+                <TextBlock Text="IP Start:" Style="{StaticResource ConfigLabelStyle}"/>
+                <TextBox Width="120" Text="{Binding ScanIpStart, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
+                         ToolTip="Starting IP address, e.g. 192.168.1.1"/>
+
+                <TextBlock Text="IP End:" Style="{StaticResource ConfigLabelStyle}"/>
+                <TextBox Width="120" Text="{Binding ScanIpEnd, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
+                         ToolTip="Ending IP address; leave blank to scan only the start IP"/>
+
+                <TextBlock Text="Port Start:" Style="{StaticResource ConfigLabelStyle}"/>
+                <TextBox Width="50" Text="{Binding ScanPortStart, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
+                         ToolTip="Starting port number"/>
+
+                <TextBlock Text="Port End:" Style="{StaticResource ConfigLabelStyle}"/>
+                <TextBox Width="50" Text="{Binding ScanPortEnd, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
+                         ToolTip="Ending port number"/>
+
+                <TextBlock Text="Threads:" Style="{StaticResource ConfigLabelStyle}"/>
+                <TextBox Width="40" Text="{Binding MaxThreads, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
+                         ToolTip="Max concurrent scan threads (1-50, default 5)"/>
+
+                <TextBlock Text="Timeout(s):" Style="{StaticResource ConfigLabelStyle}"/>
+                <TextBox Width="40" Text="{Binding TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
+                         ToolTip="Connection timeout in seconds per address"/>
+
+            </WrapPanel>
+        </Border>
+
+        <!-- ═══════════════════ Main Content ═══════════════════ -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" MinWidth="200"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="2*" MinWidth="200"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Log Panel -->
+            <GroupBox Grid.Column="0" Margin="0 2" BorderThickness="1" Padding="0"
+                      materialDesign:GroupBoxAssist.HeaderPadding="0">
+                <GroupBox.Header>
+                    <StackPanel Orientation="Horizontal" Height="24">
+                        <materialDesign:PackIcon Kind="FormatListText" Margin="5 0 4 0" VerticalAlignment="Center" Foreground="White"/>
+                        <TextBlock VerticalAlignment="Center" Margin="0 0 4 0" Foreground="White">
+                            <Run Text="Scan Log"/>
+                            <Run Text="{Binding Logs.Count, Mode=OneWay, StringFormat=({0})}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </GroupBox.Header>
+                <ListBox x:Name="LogListBox"
+                         ItemsSource="{Binding Logs}"
+                         BorderThickness="0" Background="Transparent"
+                         HorizontalContentAlignment="Stretch"
+                         ItemTemplate="{StaticResource LogEntryTemplate}"
+                         ItemContainerStyle="{StaticResource ScanListBoxItemStyle}"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         ScrollViewer.CanContentScroll="True"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         Padding="4 2"/>
+            </GroupBox>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch" Background="#3D414F" Cursor="SizeWE"/>
+
+            <!-- New Channels Panel -->
+            <GroupBox Grid.Column="2" Margin="0 2" BorderThickness="1" Padding="0"
+                      materialDesign:GroupBoxAssist.HeaderPadding="0">
+                <GroupBox.Header>
+                    <StackPanel Orientation="Horizontal" Height="24">
+                        <materialDesign:PackIcon Kind="TelevisionPlay" Margin="5 0 4 0" VerticalAlignment="Center" Foreground="White"/>
+                        <TextBlock VerticalAlignment="Center" Margin="0 0 4 0" Foreground="White">
+                            <Run Text="New Channels"/>
+                            <Run Text="{Binding NewFoundChannels.Count, Mode=OneWay, StringFormat=({0})}"/>
+                        </TextBlock>
+                        <Button Command="{Binding AddAllChannelsCommand}"
+                                Margin="4 0 0 0" Width="80" Padding="4 0"
+                                VerticalContentAlignment="Center" Foreground="White"
+                                ToolTip="Add all new channels to the database">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="DatabasePlusOutline" Margin="0 0 3 0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Add All" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </GroupBox.Header>
+                <DockPanel>
+                    <!-- Column header -->
+                    <Border DockPanel.Dock="Top" Background="#666" Padding="64 0 0 0" Height="25">
+                        <Grid TextBlock.Foreground="White">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Channel Name" Margin="4 2" VerticalAlignment="Center" FontSize="11"/>
+                            <TextBlock Grid.Column="1" Text="URL" Margin="4 2" VerticalAlignment="Center" FontSize="11"/>
+                        </Grid>
+                    </Border>
+                    <ListBox ItemsSource="{Binding NewFoundChannels}"
+                             BorderThickness="0" Background="Transparent"
+                             HorizontalContentAlignment="Stretch"
+                             ItemTemplate="{StaticResource ScanChannelItemTemplate}"
+                             ItemContainerStyle="{StaticResource ScanListBoxItemStyle}"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             VirtualizingPanel.VirtualizationMode="Recycling"
+                             ScrollViewer.CanContentScroll="True"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                </DockPanel>
+            </GroupBox>
+        </Grid>
+
+        <!-- ═══════════════════ Progress Bar ═══════════════════ -->
+        <Border Grid.Row="2" Background="#2D313E" Padding="6 4" BorderThickness="0">
+            <DockPanel LastChildFill="True">
+
+                <!-- Buttons (left-docked) -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="0 0 8 0">
+                    <Button Margin="2 0" Padding="20 0" Height="40"
+                            Command="{Binding StartScanCommand}"
+                            ToolTip="Start scan">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Radar" Width="20" Height="20" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Start Scan" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Margin="2 0" Padding="10 0" Height="28"
+                            Command="{Binding StopScanCommand}"
+                            ToolTip="Stop scan">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Stop" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Stop" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Margin="2 0" Padding="10 0" Height="28"
+                            Command="{Binding ClearResultsCommand}"
+                            ToolTip="Clear log and results">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="DeleteSweep" Margin="0 0 4 0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Clear" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Progress text (right-docked) -->
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding ProgressText}"
+                           VerticalAlignment="Center" Margin="8 0 0 0"
+                           Foreground="#CCC" FontFamily="Consolas" FontSize="12" MinWidth="220"/>
+
+                <!-- Progress bar (fills remaining space) -->
+                <ProgressBar Value="{Binding ProgressPercent, Mode=OneWay}"
+                             Minimum="0" Maximum="100"
+                             Height="12" VerticalAlignment="Center"
+                             Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+            </DockPanel>
+        </Border>
+
+    </Grid>
+</common:BaseWindow>

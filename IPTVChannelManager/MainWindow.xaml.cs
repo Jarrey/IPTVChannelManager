@@ -28,5 +28,15 @@ namespace IPTVChannelManager
             };
             settingWindow.ShowDialog();
         }
+
+        private void ScanButtonClick(object sender, RoutedEventArgs e)
+        {
+            var viewmodel = DataContext as MainWindowViewModel;
+            var scannerWindow = new ScannerWindow(viewmodel?.Channels)
+            {
+                Owner = this
+            };
+            scannerWindow.ShowDialog();
+        }
     }
 }
