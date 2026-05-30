@@ -26,42 +26,65 @@
             <UIElement/>
         </DockPanel>
 
-        <!-- Bottom control bar -->
-        <Border VerticalAlignment="Bottom" Margin="20,0,20,20" CornerRadius="5"
-                Background="#90000000" Padding="10"
-                Visibility="{Binding ControlBarVisibility}">
-            <DockPanel LastChildFill="True">
-                <!-- Left side: Fullscreen / Restore button -->
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,8,0">
-                    <Button Command="{Binding ToggleFullscreenCommand}"
-                            ToolTip="{Binding FullscreenTooltip}"
-                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="5,0">
-                        <TextBlock Text="{Binding FullscreenIcon}" FontSize="20" Foreground="White" Height="60"/>
-                    </Button>
-                </StackPanel>
+        <!-- Bottom area: control bar (auto-hides) + EPG strip (always visible) -->
+        <StackPanel VerticalAlignment="Bottom" Margin="20,0,20,4">
+            <!-- Control bar -->
+            <Border CornerRadius="5" Background="#90000000" Padding="10" Margin="0,0,0,4"
+                    Visibility="{Binding ControlBarVisibility}">
+                <DockPanel LastChildFill="True">
+                    <!-- Left side: Fullscreen / Restore button -->
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,8,0">
+                        <Button Command="{Binding ToggleFullscreenCommand}"
+                                ToolTip="{Binding FullscreenTooltip}"
+                                Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="5,0">
+                            <TextBlock Text="{Binding FullscreenIcon}" FontSize="20" Foreground="White" Height="60"/>
+                        </Button>
+                    </StackPanel>
 
-                <!-- Right side: Volume control -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,5,0">
-                    <Button Command="{Binding ToggleMuteCommand}"
-                            Background="Transparent" BorderThickness="0" Cursor="Hand"
-                            VerticalAlignment="Center" Padding="5,0">
-                        <TextBlock Text="{Binding VolumeIcon}" FontSize="20" Foreground="White" Height="60"/>
-                    </Button>
-                    <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100"
-                            Value="{Binding Volume, Mode=TwoWay}" IsMoveToPointEnabled="True"
-                            VerticalAlignment="Center" Margin="6,0,0,0"
-                            Style="{x:Null}"/>
-                    <!-- Volume percentage label -->
-                    <TextBlock Text="{Binding VolumePctText}" Foreground="White" FontSize="14"
-                               FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,0" Width="40"
-                               TextAlignment="Right"/>
-                </StackPanel>
+                    <!-- Right side: Volume control -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,5,0">
+                        <Button Command="{Binding ToggleMuteCommand}"
+                                Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                VerticalAlignment="Center" Padding="5,0">
+                            <TextBlock Text="{Binding VolumeIcon}" FontSize="20" Foreground="White" Height="60"/>
+                        </Button>
+                        <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100"
+                                Value="{Binding Volume, Mode=TwoWay}" IsMoveToPointEnabled="True"
+                                VerticalAlignment="Center" Margin="6,0,0,0"
+                                Style="{x:Null}"/>
+                        <!-- Volume percentage label -->
+                        <TextBlock Text="{Binding VolumePctText}" Foreground="White" FontSize="14"
+                                   FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,0" Width="40"
+                                   TextAlignment="Right"/>
+                    </StackPanel>
 
-                <!-- Center: Media stream info (video codec, audio codec, channels) -->
-                <TextBlock Text="{Binding MediaInfoText}" Foreground="#CCFFFFFF" FontSize="16"
-                           FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Center"
-                           HorizontalAlignment="Center" TextWrapping="NoWrap"/>
-            </DockPanel>
-        </Border>
+                    <!-- Center: Media stream info (video codec, audio codec, channels) -->
+                    <TextBlock Text="{Binding MediaInfoText}" Foreground="#CCFFFFFF" FontSize="16"
+                               FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Center"
+                               HorizontalAlignment="Center" TextWrapping="NoWrap"/>
+                </DockPanel>
+            </Border>
+
+            <!-- EPG current-programme strip — same auto-hide behaviour as control bar -->
+            <Border CornerRadius="4" Background="#70000000" Padding="16,5">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <!-- Hide when no EPG data -->
+                            <DataTrigger Binding="{Binding EpgText}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <!-- Hide together with the control bar (mouse-idle auto-hide) -->
+                            <DataTrigger Binding="{Binding ControlBarVisibility}" Value="Collapsed">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding EpgText}" Foreground="#E0FFFFFF" FontSize="15"
+                           HorizontalAlignment="Center" TextAlignment="Center"/>
+            </Border>
+        </StackPanel>
     </Grid>
 </Window>

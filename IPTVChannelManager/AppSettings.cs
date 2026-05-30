@@ -30,6 +30,7 @@ namespace IPTVChannelManager
         public const string ScanPortEnd = nameof(ScanPortEnd);
         public const string ScanMaxThreads = nameof(ScanMaxThreads);
         public const string ScanTimeoutSeconds = nameof(ScanTimeoutSeconds);
+        public const string EpgRefreshIntervalHours = nameof(EpgRefreshIntervalHours);
 
         protected override void InitSetting()
         {
@@ -46,6 +47,7 @@ namespace IPTVChannelManager
             this[ScanPortEnd] = 5140;
             this[ScanMaxThreads] = 5;
             this[ScanTimeoutSeconds] = 5;
+            this[EpgRefreshIntervalHours] = 4;
         }
         #endregion Settings
     }

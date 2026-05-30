@@ -91,6 +91,16 @@ namespace IPTVChannelManager
             set => SetProperty(ref _volumeIcon, value);
         }
 
+        // ── EPG / current programme ───────────────────────────────────────────
+
+        private string _epgText = string.Empty;
+        /// <summary>Currently-airing programme title and time, e.g. "新闻联播  12:00 – 13:00".</summary>
+        public string EpgText
+        {
+            get => _epgText;
+            set => SetProperty(ref _epgText, value);
+        }
+
         // ── Media info ────────────────────────────────────────────────────────
 
         private string _mediaInfoText = string.Empty;

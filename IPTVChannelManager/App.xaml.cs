@@ -22,6 +22,8 @@ namespace IPTVChannelManager
             base.OnStartup(e);
 
             AppSettings.Instance.LoadSetting();
+            // Load EPG data in the background; will retry every 12 hours
+            EpgService.Instance.StartLoad();
         }
 
         public static string[] ResourceNames

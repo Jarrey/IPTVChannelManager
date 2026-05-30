@@ -116,7 +116,7 @@ namespace IPTVChannelManager
 
         /// <summary>
         /// Shows the effective scan URL pattern.
-        /// Unicast: {UnicastHost}/{[IP]:[Port]}  e.g. http://server.jarrey.site:18884/udp/[IP]:[Port]
+        /// Unicast: {UnicastHost}/{[IP]:[Port]}  e.g. http://your-relay-server/udp/[IP]:[Port]
         /// Multicast: rtp://[IP]:[Port]  (UDP probe, no HTTP)
         /// </summary>
         public string UrlPatternDisplay
@@ -500,8 +500,8 @@ namespace IPTVChannelManager
         /// <summary>
         /// Builds the URL to probe for a given IP:port.
         /// Unicast: appends ip:port directly to the UnicastHost relay prefix.
-        ///   UnicastHost = "http://server.jarrey.site:18884/udp/"  ip = "233.18.204.73"  port = 5140
-        ///   → "http://server.jarrey.site:18884/udp/233.18.204.73:5140"
+        ///   UnicastHost = "http://your-relay-server/udp/"  ip = "233.18.204.73"  port = 5140
+        ///   → "http://your-relay-server/udp/233.18.204.73:5140"
         /// Multicast: rtp://ip:port  (probed via UDP, never via HttpClient)
         /// </summary>
         private string BuildScanUrl(string ip, int port)

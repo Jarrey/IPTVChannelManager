@@ -8,13 +8,15 @@ namespace IPTVChannelManager
         private string _logoUrlTemplate;
         private string _epgUrl;
         private string _unicastHost;
+        private int _epgRefreshIntervalHours;
 
         public SettingWindowViewModel()
         {
-            ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups);
-            LogoUrlTemplate = AppSettings.Instance.Get(AppSettings.LogoUrlTemplate);
-            EpgUrl = AppSettings.Instance.Get(AppSettings.EpgUrl);
-            UnicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
+            ChannelGroups            = AppSettings.Instance.Get(AppSettings.ChannelGroups);
+            LogoUrlTemplate          = AppSettings.Instance.Get(AppSettings.LogoUrlTemplate);
+            EpgUrl                   = AppSettings.Instance.Get(AppSettings.EpgUrl);
+            UnicastHost              = AppSettings.Instance.Get(AppSettings.UnicastHost);
+            EpgRefreshIntervalHours  = AppSettings.Instance.Get<int>(AppSettings.EpgRefreshIntervalHours);
         }
 
         #region Properties
@@ -55,6 +57,16 @@ namespace IPTVChannelManager
             {
                 SetProperty(ref _unicastHost, value);
                 AppSettings.Instance.Set(AppSettings.UnicastHost, value);
+            }
+        }
+
+        public int EpgRefreshIntervalHours
+        {
+            get => _epgRefreshIntervalHours;
+            set
+            {
+                SetProperty(ref _epgRefreshIntervalHours, value);
+                AppSettings.Instance.Set(AppSettings.EpgRefreshIntervalHours, value);
             }
         }
         #endregion Properties

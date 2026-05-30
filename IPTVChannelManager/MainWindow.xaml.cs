@@ -29,6 +29,12 @@ namespace IPTVChannelManager
             settingWindow.ShowDialog();
         }
 
+        private void EpgGuideButtonClick(object sender, RoutedEventArgs e)
+        {
+            var viewmodel = DataContext as MainWindowViewModel;
+            EpgGuideWindow.ShowInstance(viewmodel?.Channels ?? new System.Collections.ObjectModel.ObservableCollection<Channel>());
+        }
+
         private void ScanButtonClick(object sender, RoutedEventArgs e)
         {
             var viewmodel = DataContext as MainWindowViewModel;

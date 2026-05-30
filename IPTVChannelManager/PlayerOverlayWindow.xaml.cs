@@ -67,6 +67,9 @@ namespace IPTVChannelManager
         public void UpdateMediaInfo(string videoCodec, string audioCodec, int audioChannels)
             => VM.SetMediaInfo(videoCodec, audioCodec, audioChannels);
 
+        /// <summary>Update the EPG current-programme line in the channel info bar.</summary>
+        public void SetEpgText(string text) => VM.EpgText = text;
+
         /// <summary>Sync overlay position and size to the owner window (supports multi-monitor).</summary>
         public void SyncPosition(Window owner)
         {

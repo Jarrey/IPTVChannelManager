@@ -27,6 +27,10 @@ namespace IPTVChannelManager
         private bool _isMuted;
         private int _lastVolume = 50;
 
+        private string? _currentChannelName;
+        private string? _currentLogoName;
+        private DispatcherTimer? _epgTimer;
+
         public PlayerWindow()
         {
             InitializeComponent();
@@ -89,6 +93,11 @@ namespace IPTVChannelManager
             // Refresh media info when a new track starts playing
             _mediaPlayer.ESAdded += (s, e) => Dispatcher.Invoke(RefreshMediaInfo);
             _mediaPlayer.Playing += (s, e) => Dispatcher.Invoke(RefreshMediaInfo);
+
+            // EPG: refresh the current-programme display every 30 seconds
+            _epgTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            _epgTimer.Tick += (s, e) => RefreshEpg();
+            _epgTimer.Start();
 
             // Mouse movement detection timer (polled via global hook)
             _mouseMoveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
@@ -275,6 +284,12 @@ namespace IPTVChannelManager
             try
             {
                 _overlay?.SetChannelInfo(channelName, logoUrl);
+                _currentChannelName = channelName;
+                // Logo filename (without extension) often matches EPG display name
+                _currentLogoName = !string.IsNullOrEmpty(logoUrl)
+                    ? System.IO.Path.GetFileNameWithoutExtension(logoUrl)
+                    : null;
+                RefreshEpg();
                 using (var media = new Media(_libVlc, new Uri(streamUrl)))
                 {
                     _mediaPlayer.Play(media);
@@ -284,6 +299,13 @@ namespace IPTVChannelManager
             {
                 MessageBox.Show($"Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void RefreshEpg()
+        {
+            if (_overlay == null) return;
+            var prog = EpgService.Instance.GetCurrentProgramme(_currentChannelName, _currentLogoName);
+            _overlay.SetEpgText(EpgService.FormatProgramme(prog));
         }
 
         #region Fullscreen Toggle
@@ -374,6 +396,7 @@ namespace IPTVChannelManager
 
         public void Dispose()
         {
+            _epgTimer?.Stop();
             _mouseMoveTimer?.Stop();
             UninstallMouseHook();
             _overlay?.Close();
