@@ -63,10 +63,6 @@ namespace IPTVChannelManager
         public void UpdateMuteIcon(bool isMuted)
             => VM.SetMuted(isMuted);
 
-        /// <summary>Update the media stream info label.</summary>
-        public void UpdateMediaInfo(string videoCodec, string audioCodec, int audioChannels)
-            => VM.SetMediaInfo(videoCodec, audioCodec, audioChannels);
-
         /// <summary>Update the EPG current-programme line in the channel info bar.</summary>
         public void SetEpgText(string text) => VM.EpgText = text;
 

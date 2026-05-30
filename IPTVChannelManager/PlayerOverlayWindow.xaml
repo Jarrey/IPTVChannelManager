@@ -58,32 +58,11 @@
                                    TextAlignment="Right"/>
                     </StackPanel>
 
-                    <!-- Center: Media stream info (video codec, audio codec, channels) -->
-                    <TextBlock Text="{Binding MediaInfoText}" Foreground="#CCFFFFFF" FontSize="16"
-                               FontFamily="Consolas" VerticalAlignment="Center" TextAlignment="Center"
+                    <!-- Center: Epg info -->
+                    <TextBlock Text="{Binding EpgText}" Foreground="#CCFFFFFF" FontSize="14"
+                               VerticalAlignment="Center" TextAlignment="Center"
                                HorizontalAlignment="Center" TextWrapping="NoWrap"/>
                 </DockPanel>
-            </Border>
-
-            <!-- EPG current-programme strip — same auto-hide behaviour as control bar -->
-            <Border CornerRadius="4" Background="#70000000" Padding="16,5">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Visibility" Value="Visible"/>
-                        <Style.Triggers>
-                            <!-- Hide when no EPG data -->
-                            <DataTrigger Binding="{Binding EpgText}" Value="">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                            <!-- Hide together with the control bar (mouse-idle auto-hide) -->
-                            <DataTrigger Binding="{Binding ControlBarVisibility}" Value="Collapsed">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <TextBlock Text="{Binding EpgText}" Foreground="#E0FFFFFF" FontSize="15"
-                           HorizontalAlignment="Center" TextAlignment="Center"/>
             </Border>
         </StackPanel>
     </Grid>

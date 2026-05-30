@@ -79,6 +79,7 @@ namespace IPTVChannelManager
             _started = true;
             AppSettings.Instance.SettingChanged += OnSettingChanged;
             _ = RunLoopAsync();
+            _ = ScheduleDailyAtMidnightAsync();
             _ = ScheduleDailyAt1AmAsync();
         }
 
@@ -176,6 +177,18 @@ namespace IPTVChannelManager
                 await LoadOnceAsync();
                 int hours = Math.Clamp(AppSettings.Instance.Get<int>(AppSettings.EpgRefreshIntervalHours), 1, 168);
                 await Task.Delay(TimeSpan.FromHours(hours));
+            }
+        }
+
+        /// <summary>Forces a full EPG reload every day at 00:00 local time so the guide always shows the new day's schedule.</summary>
+        private async Task ScheduleDailyAtMidnightAsync()
+        {
+            while (true)
+            {
+                var nextMidnight = DateTime.Today.AddDays(1);   // tomorrow at 00:00:00
+                await Task.Delay(nextMidnight - DateTime.Now);
+                _cache = null;
+                await LoadOnceAsync();
             }
         }
 

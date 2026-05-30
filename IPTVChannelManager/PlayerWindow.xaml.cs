@@ -90,10 +90,6 @@ namespace IPTVChannelManager
             _overlay.SyncPosition(this);
             _overlay.Show();
 
-            // Refresh media info when a new track starts playing
-            _mediaPlayer.ESAdded += (s, e) => Dispatcher.Invoke(RefreshMediaInfo);
-            _mediaPlayer.Playing += (s, e) => Dispatcher.Invoke(RefreshMediaInfo);
-
             // EPG: refresh the current-programme display every 30 seconds
             _epgTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
             _epgTimer.Tick += (s, e) => RefreshEpg();
@@ -129,55 +125,6 @@ namespace IPTVChannelManager
             return new System.Windows.Point(pt.x, pt.y);
         }
 
-        /// <summary>
-        /// Read codec info from the active media tracks and push it to the overlay.
-        /// </summary>
-        private void RefreshMediaInfo()
-        {
-            if (_overlay == null || _mediaPlayer == null) return;
-
-            string videoCodec = string.Empty;
-            string audioCodec = string.Empty;
-            int audioChannels = 0;
-
-            try
-            {
-                var tracks = _mediaPlayer.Media?.Tracks;
-                if (tracks != null)
-                {
-                    foreach (var track in tracks)
-                    {
-                        if (track.TrackType == TrackType.Video && string.IsNullOrEmpty(videoCodec))
-                        {
-                            videoCodec = FourCCToString(track.Codec);
-                        }
-                        else if (track.TrackType == TrackType.Audio && string.IsNullOrEmpty(audioCodec))
-                        {
-                            audioCodec = FourCCToString(track.Codec);
-                            audioChannels = (int)(track.Data.Audio.Channels);
-                        }
-                    }
-                }
-            }
-            catch { /* ignore, non-critical */ }
-
-            _overlay.UpdateMediaInfo(videoCodec, audioCodec, audioChannels);
-        }
-
-        /// <summary>
-        /// Convert a VLC FourCC uint to a human-readable codec name string.
-        /// </summary>
-        private static string FourCCToString(uint fourcc)
-        {
-            if (fourcc == 0) return string.Empty;
-            byte[] bytes = BitConverter.GetBytes(fourcc);
-            // FourCC is stored little-endian; convert to ASCII chars
-            var s = new string(new[]
-            {
-                (char)bytes[0], (char)bytes[1], (char)bytes[2], (char)bytes[3]
-            }).TrimEnd('\0').Trim();
-            return s;
-        }
         #endregion Overlay
 
         #region Low-level Mouse Hook - Double-click Detection

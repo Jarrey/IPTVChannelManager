@@ -1,6 +1,5 @@
 using IPTVChannelManager.Common;
 using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -101,15 +100,6 @@ namespace IPTVChannelManager
             set => SetProperty(ref _epgText, value);
         }
 
-        // ── Media info ────────────────────────────────────────────────────────
-
-        private string _mediaInfoText = string.Empty;
-        public string MediaInfoText
-        {
-            get => _mediaInfoText;
-            set => SetProperty(ref _mediaInfoText, value);
-        }
-
         // ── Commands ──────────────────────────────────────────────────────────
 
         /// <summary>Command bound to the fullscreen/restore button.</summary>
@@ -172,28 +162,6 @@ namespace IPTVChannelManager
         public void SetMuted(bool isMuted)
         {
             VolumeIcon = isMuted ? Constants.OverlayIconMute : Constants.OverlayIconVolume;
-        }
-
-        /// <summary>
-        /// Build and set the media stream info string.
-        /// </summary>
-        public void SetMediaInfo(string videoCodec, string audioCodec, int audioChannels)
-        {
-            string channelLabel = audioChannels switch
-            {
-                1 => "Mono",
-                2 => "Stereo",
-                6 => "5.1",
-                8 => "7.1",
-                _ => audioChannels > 0 ? $"{audioChannels}ch" : string.Empty
-            };
-
-            var parts = new List<string>();
-            if (!string.IsNullOrEmpty(videoCodec))   parts.Add($"Video: {videoCodec}");
-            if (!string.IsNullOrEmpty(audioCodec))   parts.Add($"Audio: {audioCodec}");
-            if (!string.IsNullOrEmpty(channelLabel)) parts.Add(channelLabel);
-
-            MediaInfoText = string.Join("  |  ", parts);
         }
     }
 }
