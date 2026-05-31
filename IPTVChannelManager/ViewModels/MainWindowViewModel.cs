@@ -1,28 +1,43 @@
-﻿using IPTVChannelManager.Common;
+﻿using IPTVChannelManager;
+using IPTVChannelManager.Common;
+using IPTVChannelManager.Models;
+using IPTVChannelManager.Services;
+using IPTVChannelManager.Views;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Windows;
 using System.Windows.Input;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        #region Fields
+
         private static string DBPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.AppName, Constants.ChannelDB);
+
         private ObservableCollection<Channel> _channels;
         private ObservableCollection<Channel> _newChannels;
         private ObservableCollection<Channel> _oldChannels;
         private string[] _channelGroups;
         private bool _unicastMulticastSwitch;
         private string _unicastHost;
+        private readonly IWindowService _windowService;
+        private string _filterText;
 
-        public MainWindowViewModel()
+        #endregion
+
+        #region Constructor
+
+        public MainWindowViewModel(IWindowService windowService)
         {
+            _windowService = windowService;
             NewChannels = new ObservableCollection<Channel>();
             OldChannels = new ObservableCollection<Channel>();
             ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups)?.Split(Constants.Spliter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -42,19 +57,40 @@ namespace IPTVChannelManager
             PlayCommand = new DelegateCommand<Channel>(Play);
             AddAllCommand = new DelegateCommand(AddAllChannels);
             RemoveAllCommand = new DelegateCommand(RemoveAllChannels);
-            ShowEpgGuideCommand = new DelegateCommand(() => EpgGuideWindow.ShowInstance(Channels ?? new ObservableCollection<Channel>()));
+            ShowEpgGuideCommand = new DelegateCommand(() => _windowService.OpenEpgGuideWindow(Channels ?? new ObservableCollection<Channel>()));
+            OpenSettingCommand = new DelegateCommand(() => _windowService.OpenSettingWindow());
+            OpenScannerCommand = new DelegateCommand(() => _windowService.OpenScannerWindow(Channels ?? new ObservableCollection<Channel>()));
         }
 
+        #endregion
+
         #region Properties
+
         public ObservableCollection<Channel> Channels
         {
             get => _channels;
-            set => SetProperty(ref _channels, value);
+            set
+            {
+                // Unsubscribe old collection
+                if (_channels != null)
+                {
+                    _channels.CollectionChanged -= OnChannelsCollectionChanged;
+                    foreach (var ch in _channels)
+                        ch.PropertyChanged -= OnChannelPropertyChanged;
+                }
+                SetProperty(ref _channels, value);
+                // Subscribe new collection
+                if (_channels != null)
+                {
+                    _channels.CollectionChanged += OnChannelsCollectionChanged;
+                    foreach (var ch in _channels)
+                        ch.PropertyChanged += OnChannelPropertyChanged;
+                }
+                RaisePropertyChanged(nameof(Count));
+            }
         }
 
         public string Count => $"({Channels?.Where(c => !c.Ignore)?.Count()}/{Channels?.Count})";
-
-        public void RaiseCountChange() => RaisePropertyChanged(nameof(Count));
 
         public ObservableCollection<Channel> NewChannels
         {
@@ -90,10 +126,6 @@ namespace IPTVChannelManager
             set => SetProperty(ref _unicastHost, value);
         }
 
-        #endregion Properties
-
-        #region Filter Properties
-        private string _filterText;
         public string FilterText
         {
             get => _filterText;
@@ -126,9 +158,11 @@ namespace IPTVChannelManager
                 return false;
             });
         }
-        #endregion Filter Properties
+
+        #endregion Properties
 
         #region Commands
+
         public ICommand ImportChannelsCommand { get; }
         public ICommand ReloadChannelsDBCommand { get; }
         public ICommand SaveChannelsDBCommand { get; }
@@ -141,9 +175,30 @@ namespace IPTVChannelManager
         public ICommand ExportToM3uCommand { get; }
         public ICommand PlayCommand { get; }
         public ICommand ShowEpgGuideCommand { get; }
+        public ICommand OpenSettingCommand { get; }
+        public ICommand OpenScannerCommand { get; }
+
         #endregion Commands
 
         #region Methods
+
+        private void OnChannelsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems != null)
+                foreach (Channel ch in e.OldItems)
+                    ch.PropertyChanged -= OnChannelPropertyChanged;
+            if (e.NewItems != null)
+                foreach (Channel ch in e.NewItems)
+                    ch.PropertyChanged += OnChannelPropertyChanged;
+            RaisePropertyChanged(nameof(Count));
+        }
+
+        private void OnChannelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Channel.Ignore))
+                RaisePropertyChanged(nameof(Count));
+        }
+
         private void SettingChanged(object? sender, (string, object) e)
         {
             ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups)?.Split(Constants.Spliter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -360,6 +415,7 @@ namespace IPTVChannelManager
                 Console.WriteLine($"{ex.Message}, {ex}");
             }
         }
+
         #endregion Methods
     }
 }

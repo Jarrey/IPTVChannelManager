@@ -1,14 +1,20 @@
 ﻿using IPTVChannelManager.Common;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.ViewModels
 {
     public class SettingWindowViewModel : BindableBase
     {
+        #region Fields
+
         private string _channelGroups;
         private string _logoUrlTemplate;
         private string _epgUrl;
         private string _unicastHost;
         private int _epgRefreshIntervalHours;
+
+        #endregion
+
+        #region Constructor
 
         public SettingWindowViewModel()
         {
@@ -18,6 +24,8 @@ namespace IPTVChannelManager
             UnicastHost              = AppSettings.Instance.Get(AppSettings.UnicastHost);
             EpgRefreshIntervalHours  = AppSettings.Instance.Get<int>(AppSettings.EpgRefreshIntervalHours);
         }
+
+        #endregion
 
         #region Properties
         public string ChannelGroups

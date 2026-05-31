@@ -1,24 +1,31 @@
-<common:BaseWindow x:Class="IPTVChannelManager.ScannerWindow"
+<common:BaseWindow x:Class="IPTVChannelManager.Views.ScannerWindow"
                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-                   xmlns:local="clr-namespace:IPTVChannelManager"
+                   xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+                   xmlns:vm="clr-namespace:IPTVChannelManager.ViewModels"
+                   xmlns:models="clr-namespace:IPTVChannelManager.Models"
                    xmlns:common="clr-namespace:IPTVChannelManager.Common"
                    mc:Ignorable="d" WindowStartupLocation="CenterScreen"
-                   Icon="tv.ico" Title="IPTV Scanner" MinHeight="700" MinWidth="1100" Foreground="#CCC">
+                   Icon="../tv.ico" Title="IPTV Scanner" MinHeight="700" MinWidth="1100" Foreground="#CCC">
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closed">
+            <i:InvokeCommandAction Command="{Binding CloseCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <common:BaseWindow.Resources>
 
         <!-- Log entry template -->
-        <DataTemplate x:Key="LogEntryTemplate" DataType="{x:Type local:ScanLogEntry}">
+        <DataTemplate x:Key="LogEntryTemplate" DataType="{x:Type vm:ScanLogEntry}">
             <TextBlock Text="{Binding Message}" Foreground="{Binding Foreground}"
                        FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap"/>
         </DataTemplate>
 
         <!-- Scanned channel item template -->
-        <DataTemplate x:Key="ScanChannelItemTemplate" DataType="{x:Type local:Channel}">
+        <DataTemplate x:Key="ScanChannelItemTemplate" DataType="{x:Type models:Channel}">
             <DockPanel Background="#3A4A5A" Margin="0">
                 <Button DockPanel.Dock="Left" Margin="0" Width="30" Padding="5 0"
                         VerticalContentAlignment="Center" Foreground="White"
@@ -172,7 +179,11 @@
                          ScrollViewer.CanContentScroll="True"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         Padding="4 2"/>
+                         Padding="4 2">
+                    <i:Interaction.Behaviors>
+                        <common:AutoScrollBehavior/>
+                    </i:Interaction.Behaviors>
+                </ListBox>
             </GroupBox>
 
             <!-- Splitter -->

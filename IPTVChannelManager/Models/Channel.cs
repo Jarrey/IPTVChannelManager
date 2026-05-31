@@ -1,12 +1,14 @@
-﻿using IPTVChannelManager.Common;
-using Newtonsoft.Json;
-using System.Linq;
+﻿using System.Linq;
 using System.Web;
+using Newtonsoft.Json;
+using IPTVChannelManager.Common;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Models
 {
     public class Channel : BindableBase
     {
+        #region Fields
+
         private string _id = "-1";
         private string _name;
         private string _logo;
@@ -14,6 +16,10 @@ namespace IPTVChannelManager
         private string _group = string.Empty;
         private bool _ignore;
         private string _logoUrl;
+
+        #endregion
+
+        #region Constructor
 
         public Channel(string name, string url, string group)
         {
@@ -23,6 +29,10 @@ namespace IPTVChannelManager
             Group = group;
             Ignore = false;
         }
+
+        #endregion
+
+        #region Properties
 
         [JsonProperty("id")]
         public string Id { get => _id; set => SetProperty(ref _id, value); }
@@ -57,15 +67,17 @@ namespace IPTVChannelManager
                 {
                     if (App.ResourceNames.Any(name => HttpUtility.UrlDecode(name)?.ToLower() == HttpUtility.UrlDecode(url)?.ToLower()))
                     {
-                        _logoUrl = url;
+                        _logoUrl = $"../{url}";
                     }
                     else
                     {
-                        _logoUrl = "logos/null.png";
+                        _logoUrl = "../logos/null.png";
                     }
                 }
                 return _logoUrl;
             }
         }
+
+        #endregion
     }
 }

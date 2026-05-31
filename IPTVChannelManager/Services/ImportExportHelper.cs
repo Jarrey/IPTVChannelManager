@@ -1,14 +1,17 @@
-﻿using M3UParser;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using M3UParser;
+using IPTVChannelManager.Models;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Services
 {
     public class ImportExportHelper
     {
+        #region Methods
+
         public static IEnumerable<Channel> ImportFromTxt(string filepath, string unicastHost = null)
         {
             string content = File.ReadAllText(filepath);
@@ -103,5 +106,7 @@ namespace IPTVChannelManager
         {
             return $"{unicastHost}{url}";
         }
+
+        #endregion
     }
 }

@@ -1,12 +1,12 @@
-<common:BaseWindow x:Class="IPTVChannelManager.EpgGuideWindow"
+<common:BaseWindow x:Class="IPTVChannelManager.Views.EpgGuideWindow"
                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                    xmlns:common="clr-namespace:IPTVChannelManager.Common"
-                   xmlns:local="clr-namespace:IPTVChannelManager"
+                   xmlns:local="clr-namespace:IPTVChannelManager.ViewModels"
                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
                    Title="EPG Guide" MinWidth="900" MinHeight="500"
-                   Width="1400" Height="700" Icon="tv.ico" ShowInTaskbar="True">
+                   Width="1400" Height="700" Icon="../tv.ico" ShowInTaskbar="True">
 
     <common:BaseWindow.Resources>
         <common:ImageConverter x:Key="ImageConverter"/>
@@ -76,7 +76,7 @@
             <DockPanel VerticalAlignment="Center" Margin="0">
                 <Button x:Name="ReloadButton"
                         DockPanel.Dock="Left"
-                        Click="ReloadButton_Click"
+                        Command="{Binding ReloadCommand}"
                         ToolTip="Reload channels &amp; EPG"
                         Width="30" Height="30" Padding="0">
                     <materialDesign:PackIcon Kind="RefreshCircle" Width="18" Height="18"/>

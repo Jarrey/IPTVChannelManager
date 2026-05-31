@@ -1,132 +1,43 @@
-﻿using IPTVChannelManager.Common;
-using LibVLCSharp.Shared;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using LibVLCSharp.Shared;
+using IPTVChannelManager;
+using IPTVChannelManager.Common;
+using IPTVChannelManager.Models;
+using IPTVChannelManager.Services;
+using IPTVChannelManager.ViewModels;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Views
 {
     /// <summary>
     /// Code-behind for PlayerWindow.xaml
     /// </summary>
     public partial class PlayerWindow : BaseWindow, IDisposable
     {
+        #region Fields
+
         private static PlayerWindow? _instance;
+
         private LibVLC _libVlc;
         private MediaPlayer _mediaPlayer;
         private PlayerOverlayWindow _overlay;
         private PlayerOverlayViewModel _overlayVm;
+        private PlayerViewModel _vm;
 
         private bool _isFullscreen;
         private WindowState _prevWindowState;
         private ResizeMode _prevResizeMode;
         private double _prevLeft, _prevTop, _prevWidth, _prevHeight;
-        private bool _isMuted;
-        private int _lastVolume = 50;
 
-        private Channel _currentChannel;
-        private string? _currentChannelName;
-        private string? _currentLogoName;
         private DispatcherTimer? _epgTimer;
 
-        public static void ShowInstance(Channel channel)
-        {
-            if (_instance == null)
-            {
-                _instance = new PlayerWindow(channel);
-                _instance.Closed += (s, e) => _instance = null;
-                _instance.Show();
-            }
-            else
-            {
-                // Refresh channel list reference and rebuild
-                _instance._currentChannel = channel;
-                _instance.PlayNetworkStream();
-                if (_instance.WindowState == WindowState.Minimized)
-                    _instance.WindowState = WindowState.Normal;
-                _instance.Activate();
-            }
-        }
+        #region Low-level Mouse Hook - Fields
 
-        private PlayerWindow(Channel channel)
-        {
-            InitializeComponent();
-            Core.Initialize();
-            _libVlc = new LibVLC();
-            _mediaPlayer = new MediaPlayer(_libVlc)
-            {
-                EnableHardwareDecoding = true,
-                Volume = 50
-            };
-            VideoPlayer.MediaPlayer = _mediaPlayer;
-
-            Loaded += PlayerWindow_Loaded;
-            KeyDown += PlayerWindow_KeyDown;
-            LocationChanged += (s, e) => _overlay?.SyncPosition(this);
-            SizeChanged += (s, e) => _overlay?.SyncPosition(this);
-            StateChanged += (s, e) => _overlay?.SyncPosition(this);
-            Activated += (s, e) => { if (_overlay != null) _overlay.Topmost = true; };
-            Deactivated += (s, e) => { if (_overlay != null) _overlay.Topmost = false; };
-
-            _currentChannel = channel;
-        }
-
-        #region Properties
-        public bool IsDisposed { get; private set; }
-        #endregion Properties
-
-        private void PlayerWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            InstallMouseHook();
-            InitOverlay();
-            PlayNetworkStream();
-        }
-
-        #region Overlay
-        private void InitOverlay()
-        {
-            _overlayVm = new PlayerOverlayViewModel(
-                toggleFullscreen: ToggleFullscreen,
-                toggleMute: () =>
-                {
-                    _isMuted = !_isMuted;
-                    if (_mediaPlayer != null)
-                        _mediaPlayer.Volume = _isMuted ? 0 : _lastVolume;
-                    _overlayVm.SetMuted(_isMuted);
-                });
-
-            // Volume slider is TwoWay-bound to VM.Volume — sync changes to VLC
-            _overlayVm.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName != nameof(PlayerOverlayViewModel.Volume)) return;
-                int volume = _overlayVm.Volume;
-                if (_mediaPlayer != null)
-                    _mediaPlayer.Volume = volume;
-                _lastVolume = volume;
-                if (_isMuted && volume > 0)
-                {
-                    _isMuted = false;
-                    _overlayVm.SetMuted(false);
-                }
-            };
-
-            _overlay = new PlayerOverlayWindow(_overlayVm) { Owner = this };
-            _overlay.SyncPosition(this);
-            _overlay.Show();
-
-            // EPG: refresh the current-programme display every 30 seconds
-            _epgTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
-            _epgTimer.Tick += (s, e) => RefreshEpg();
-            _epgTimer.Start();
-        }
-
-        #endregion Overlay
-
-        #region Low-level Mouse Hook - Double-click Detection
         private const int WH_MOUSE_LL = 14;
         private const int WM_MOUSEMOVE = 0x0200;
         private const int WM_LBUTTONDOWN = 0x0201;
@@ -150,6 +61,114 @@ namespace IPTVChannelManager
             public uint time;
             public IntPtr dwExtraInfo;
         }
+
+        #endregion Low-level Mouse Hook - Fields
+
+        #endregion Fields
+
+        #region Constructor
+
+        private PlayerWindow(Channel channel)
+        {
+            _vm = new PlayerViewModel();
+            _vm.SetChannel(channel);
+            DataContext = _vm;
+
+            InitializeComponent();
+            Core.Initialize();
+            _libVlc = new LibVLC();
+            _mediaPlayer = new MediaPlayer(_libVlc)
+            {
+                EnableHardwareDecoding = true,
+                Volume = Constants.OverlayDefaultVolume
+            };
+            VideoPlayer.MediaPlayer = _mediaPlayer;
+
+            Loaded += PlayerWindow_Loaded;
+            KeyDown += PlayerWindow_KeyDown;
+            LocationChanged += (s, e) => _overlay?.SyncPosition(this);
+            SizeChanged += (s, e) => _overlay?.SyncPosition(this);
+            StateChanged += (s, e) => _overlay?.SyncPosition(this);
+            Activated += (s, e) => { if (_overlay != null) _overlay.Topmost = true; };
+            Deactivated += (s, e) => { if (_overlay != null) _overlay.Topmost = false; };
+        }
+
+        #endregion Constructor
+
+        #region Properties
+
+        public bool IsDisposed { get; private set; }
+
+        #endregion Properties
+
+        #region Methods
+
+        public static void ShowInstance(Channel channel)
+        {
+            if (_instance == null)
+            {
+                _instance = new PlayerWindow(channel);
+                _instance.Closed += (s, e) => _instance = null;
+                _instance.Show();
+            }
+            else
+            {
+                _instance._vm.SetChannel(channel);
+                _instance.PlayNetworkStream();
+                if (_instance.WindowState == WindowState.Minimized)
+                    _instance.WindowState = WindowState.Normal;
+                _instance.Activate();
+            }
+        }
+
+        public void Dispose()
+        {
+            _epgTimer?.Stop();
+            UninstallMouseHook();
+            _overlay?.Close();
+            _overlay = null;
+            _overlayVm = null;
+            _mediaPlayer?.Stop();
+            _mediaPlayer?.Dispose();
+            _libVlc?.Dispose();
+            Loaded -= PlayerWindow_Loaded;
+            KeyDown -= PlayerWindow_KeyDown;
+            IsDisposed = true;
+        }
+
+        private void PlayerWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            InstallMouseHook();
+            InitOverlay();
+            PlayNetworkStream();
+        }
+
+        private void InitOverlay()
+        {
+            _overlayVm = new PlayerOverlayViewModel(toggleFullscreen: ToggleFullscreen);
+
+            // Sync Volume and IsMuted changes from ViewModel to the LibVLC player
+            _overlayVm.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(PlayerOverlayViewModel.Volume) ||
+                    e.PropertyName == nameof(PlayerOverlayViewModel.IsMuted))
+                {
+                    if (_mediaPlayer != null)
+                        _mediaPlayer.Volume = _overlayVm.IsMuted ? 0 : _overlayVm.Volume;
+                }
+            };
+
+            _overlay = new PlayerOverlayWindow(_overlayVm) { Owner = this };
+            _overlay.SyncPosition(this);
+            _overlay.Show();
+
+            // EPG: refresh the current-programme display every 30 seconds
+            _epgTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            _epgTimer.Tick += (s, e) => RefreshEpg();
+            _epgTimer.Start();
+        }
+
+        #region Low-level Mouse Hook - Methods
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
@@ -247,23 +266,16 @@ namespace IPTVChannelManager
             // The clicked window is this window itself or a child window (including VLC render window)
             return clickedWnd == wndHelper.Handle || IsChild(wndHelper.Handle, clickedWnd);
         }
-        #endregion Low-level Mouse Hook - Double-click Detection
+
+        #endregion Low-level Mouse Hook - Methods
 
         private void PlayNetworkStream()
         {
             try
             {
-                if (_currentChannel == null || string.IsNullOrWhiteSpace(_currentChannel.Url)) return;
-                bool unicastMulticast = AppSettings.Instance.Get<bool>(AppSettings.ImportExportWithCustomHost);
-                string unicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
-                string streamUrl = unicastMulticast ? $"{unicastHost}{_currentChannel.Url}" : $"{Constants.DefaultMulticastHost}{_currentChannel.Url}";
-                Title = $"{_currentChannel.Name} - {streamUrl}";
-                _overlayVm?.SetChannelInfo(_currentChannel.Name, _currentChannel.LogoUrl);
-                _currentChannelName = _currentChannel.Name;
-                // Logo filename (without extension) often matches EPG display name
-                _currentLogoName = !string.IsNullOrEmpty(_currentChannel.LogoUrl)
-                    ? System.IO.Path.GetFileNameWithoutExtension(_currentChannel.LogoUrl)
-                    : null;
+                string streamUrl = _vm.BuildStreamUrl();
+                if (string.IsNullOrWhiteSpace(streamUrl)) return;
+                _overlayVm?.SetChannelInfo(_vm.CurrentChannelName, _vm.CurrentLogoUrl);
                 RefreshEpg();
                 using (var media = new Media(_libVlc, new Uri(streamUrl)))
                 {
@@ -279,11 +291,9 @@ namespace IPTVChannelManager
         private void RefreshEpg()
         {
             if (_overlay == null) return;
-            var prog = EpgService.Instance.GetCurrentProgramme(_currentChannelName, _currentLogoName);
+            var prog = EpgService.Instance.GetCurrentProgramme(_vm.CurrentChannelName, _vm.CurrentLogoName);
             _overlayVm.EpgText = EpgService.FormatProgramme(prog);
         }
-
-        #region Fullscreen Toggle
 
         private void PlayerWindow_KeyDown(object sender, KeyEventArgs e)
         {
@@ -362,7 +372,6 @@ namespace IPTVChannelManager
                 chrome.ResizeBorderThickness = visible ? new Thickness(5) : new Thickness(0);
             }
         }
-        #endregion Fullscreen Toggle
 
         protected override void OnClosed(EventArgs e)
         {
@@ -370,19 +379,7 @@ namespace IPTVChannelManager
             Dispose();
         }
 
-        public void Dispose()
-        {
-            _epgTimer?.Stop();
-            UninstallMouseHook();
-            _overlay?.Close();
-            _overlay = null;
-            _overlayVm = null;
-            _mediaPlayer?.Stop();
-            _mediaPlayer?.Dispose();
-            _libVlc?.Dispose();
-            Loaded -= PlayerWindow_Loaded;
-            KeyDown -= PlayerWindow_KeyDown;
-            IsDisposed = true;
-        }
+        #endregion Methods
     }
 }
+

@@ -1,4 +1,5 @@
 using IPTVChannelManager.Common;
+using IPTVChannelManager.Models;
 using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.ViewModels
 {
     public enum ScanLogLevel { Info, Found, New, Exists, Error, Complete }
 
@@ -35,7 +36,12 @@ namespace IPTVChannelManager
 
     public class ScannerWindowViewModel : BindableBase
     {
+        #region Fields
+
+        private const int MaxLogEntries = 10000;
+
         private readonly ObservableCollection<Channel> _existingChannels;
+        private readonly IWindowService _windowService;
         private CancellationTokenSource _cts;
         private SemaphoreSlim _semaphore;
         private LibVLC _probeLibVlc;
@@ -64,12 +70,16 @@ namespace IPTVChannelManager
         private readonly DelegateCommand _stopScanCommand;
         private readonly DelegateCommand _clearResultsCommand;
         private readonly DelegateCommand _addAllChannelsCommand;
+        private readonly DelegateCommand _closeCommand;
 
-        private const int MaxLogEntries = 3000;
+        #endregion
 
-        public ScannerWindowViewModel(ObservableCollection<Channel> existingChannels)
+        #region Constructor
+
+        public ScannerWindowViewModel(ObservableCollection<Channel> existingChannels, IWindowService windowService)
         {
             _existingChannels = existingChannels;
+            _windowService = windowService;
 
             // Load persisted settings (use property setters so clamping is applied)
             _useUnicast     = AppSettings.Instance.Get<bool>(AppSettings.ImportExportWithCustomHost);
@@ -88,19 +98,23 @@ namespace IPTVChannelManager
             _stopScanCommand     = new DelegateCommand(StopScan, () => IsScanning);
             _clearResultsCommand = new DelegateCommand(ClearResults, () => !IsScanning);
             _addAllChannelsCommand = new DelegateCommand(AddAllChannels, () => !IsScanning && NewFoundChannels.Count > 0);
+            _closeCommand = new DelegateCommand(Cleanup);
 
             StartScanCommand    = _startScanCommand;
             StopScanCommand     = _stopScanCommand;
             ClearResultsCommand = _clearResultsCommand;
             AddChannelCommand   = new DelegateCommand<Channel>(AddChannel);
             AddAllChannelsCommand = _addAllChannelsCommand;
-            PreviewChannelCommand = new DelegateCommand<Channel>(ch => PlayChannelRequested?.Invoke(ch));
+            PreviewChannelCommand = new DelegateCommand<Channel>(ch => _windowService.OpenPlayerWindow(ch));
+            CloseCommand = _closeCommand;
 
             Core.Initialize();
             _probeLibVlc = new LibVLC("--vout=dummy", "--aout=dummy", "--no-stats");
         }
 
-        #region Settings Properties
+        #endregion
+
+        #region Properties
 
         /// <summary>Mirrors AppSettings.ImportExportWithCustomHost: true = unicast, false = multicast.</summary>
         public bool UseUnicast
@@ -180,10 +194,6 @@ namespace IPTVChannelManager
             }
         }
 
-        #endregion
-
-        #region State Properties
-
         public bool IsScanning
         {
             get => _isScanning;
@@ -231,14 +241,10 @@ namespace IPTVChannelManager
 
         public string ProgressText => $"{ScannedCount} / {TotalCount}   |   New: {FoundCount}";
 
-        #endregion
-
-        #region Collections
-
         public ObservableCollection<ScanLogEntry> Logs { get; }
         public ObservableCollection<Channel> NewFoundChannels { get; }
 
-        #endregion
+        #endregion Properties
 
         #region Commands
 
@@ -248,14 +254,7 @@ namespace IPTVChannelManager
         public ICommand AddChannelCommand { get; }
         public ICommand AddAllChannelsCommand { get; }
         public ICommand PreviewChannelCommand { get; }
-
-        #endregion
-
-        #region Events
-
-        /// <summary>Raised when the user clicks Preview on a scanned channel; code-behind opens the player.</summary>
-        public event Action<Channel> PlayChannelRequested;
-
+        public ICommand CloseCommand { get; }
         #endregion
 
         #region Methods

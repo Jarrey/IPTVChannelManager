@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using XmlTvSharp;
 
-namespace IPTVChannelManager
+namespace IPTVChannelManager.Services
 {
     /// <summary>
     /// Singleton service that downloads, parses and caches EPG (XMLTV) data from
@@ -17,13 +17,7 @@ namespace IPTVChannelManager
     /// </summary>
     public sealed class EpgService
     {
-        #region Singleton
-        public static EpgService Instance { get; } = new EpgService();
-        private EpgService() { }
-        #endregion
-
         // ── Internal snapshot (replaced atomically on each refresh) ──────────
-
         private sealed class EpgCache
         {
             /// <summary>Normalized display name / channel id → EPG channel id.</summary>
@@ -35,10 +29,12 @@ namespace IPTVChannelManager
                 Dictionary<string, string> nameToId,
                 Dictionary<string, List<XmlTvProgramme>> programmesById)
             {
-                NameToId      = nameToId;
+                NameToId       = nameToId;
                 ProgrammesById = programmesById;
             }
         }
+
+        #region Fields
 
         private static readonly HttpClient _http = new HttpClient
         {
@@ -47,6 +43,18 @@ namespace IPTVChannelManager
 
         private volatile EpgCache? _cache;
         private bool _started;
+
+        #endregion
+
+        #region Constructor
+
+        private EpgService() { }
+
+        #endregion
+
+        #region Properties
+
+        public static EpgService Instance { get; } = new EpgService();
 
         /// <summary>True once the first successful load has finished.</summary>
         public bool IsLoaded => _cache != null;
@@ -57,7 +65,21 @@ namespace IPTVChannelManager
         /// </summary>
         public event EventHandler? CacheRefreshed;
 
-        // ── Public API ────────────────────────────────────────────────────────
+        #endregion
+
+        #region Methods
+
+        /// <summary>Format a programme as "Title  HH:mm – HH:mm".</summary>
+        public static string FormatProgramme(XmlTvProgramme? prog)
+        {
+            if (prog == null) return string.Empty;
+
+            // Prefer Chinese title, fall back to first available language
+            string title = prog.Titles.TryGetValue("zh", out var t) ? t
+                         : prog.Titles.Values.FirstOrDefault() ?? string.Empty;
+
+            return $"{title}  {prog.Start.ToLocalTime():HH:mm} – {prog.Stop.ToLocalTime():HH:mm}";
+        }
 
         /// <summary>
         /// Immediately clears the current cache and re-downloads / re-parses the EPG.
@@ -81,16 +103,6 @@ namespace IPTVChannelManager
             _ = RunLoopAsync();
             _ = ScheduleDailyAtMidnightAsync();
             _ = ScheduleDailyAt1AmAsync();
-        }
-
-        private void OnSettingChanged(object? sender, (string key, object value) e)
-        {
-            if (e.key == AppSettings.EpgUrl)
-            {
-                _cache = null;
-                _ = LoadOnceAsync();
-            }
-            // EpgRefreshIntervalHours change is picked up automatically on the next loop iteration
         }
 
         /// <summary>
@@ -156,19 +168,15 @@ namespace IPTVChannelManager
             return Array.Empty<XmlTvProgramme>();
         }
 
-        /// <summary>Format a programme as "Title  HH:mm – HH:mm".</summary>
-        public static string FormatProgramme(XmlTvProgramme? prog)
+        private void OnSettingChanged(object? sender, (string key, object value) e)
         {
-            if (prog == null) return string.Empty;
-
-            // Prefer Chinese title, fall back to first available language
-            string title = prog.Titles.TryGetValue("zh", out var t) ? t
-                         : prog.Titles.Values.FirstOrDefault() ?? string.Empty;
-
-            return $"{title}  {prog.Start.ToLocalTime():HH:mm} – {prog.Stop.ToLocalTime():HH:mm}";
+            if (e.key == AppSettings.EpgUrl)
+            {
+                _cache = null;
+                _ = LoadOnceAsync();
+            }
+            // EpgRefreshIntervalHours change is picked up automatically on the next loop iteration
         }
-
-        // ── Background loading ────────────────────────────────────────────────
 
         private async Task RunLoopAsync()
         {
@@ -197,7 +205,7 @@ namespace IPTVChannelManager
         {
             while (true)
             {
-                var now   = DateTime.Now;
+                var now    = DateTime.Now;
                 var next1am = DateTime.Today.AddDays(now.Hour >= 1 ? 1 : 0).AddHours(1);
                 await Task.Delay(next1am - now);
                 _cache = null;
@@ -327,8 +335,6 @@ namespace IPTVChannelManager
             try { if (!string.IsNullOrEmpty(path)) File.Delete(path); } catch { }
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────────
-
         private static XmlTvProgramme? FindCurrentProgramme(
             List<XmlTvProgramme> programmes, DateTimeOffset now)
         {
@@ -340,5 +346,7 @@ namespace IPTVChannelManager
             }
             return null;
         }
+
+        #endregion
     }
 }
