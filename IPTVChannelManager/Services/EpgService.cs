@@ -293,9 +293,9 @@ namespace IPTVChannelManager.Services
         /// </summary>
         private static async Task<string> DecompressIfNeededAsync(string file)
         {
-            byte[] magic = new byte[4];
+            byte[] magic = new byte[2];
             await using (var probe = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
-                _ = await probe.ReadAsync(magic, 0, 4);
+                _ = await probe.ReadAsync(magic, 0, 2);
 
             // GZip: magic = 1F 8B
             if (magic[0] == 0x1F && magic[1] == 0x8B)
@@ -313,7 +313,7 @@ namespace IPTVChannelManager.Services
             if (magic[0] == 0x50 && magic[1] == 0x4B)
             {
                 string outFile = file + ".xml";
-                using var zip   = System.IO.Compression.ZipFile.OpenRead(file);
+                using var zip   = ZipFile.OpenRead(file);
                 var entry = zip.Entries.FirstOrDefault(e =>
                                 e.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                             ?? zip.Entries.FirstOrDefault();

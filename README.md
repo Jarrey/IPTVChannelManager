@@ -1,6 +1,6 @@
 # IPTVChannelManager
 
-A Windows desktop application for managing, organizing, and playing IPTV channels. Built with WPF and .NET 7, it allows you to import channel lists from M3U/TXT files, maintain a persistent local channel database, and play streams directly within the application using LibVLC.
+A Windows desktop application for managing, organizing, and playing IPTV channels. Built with WPF and .NET 10, it allows you to import channel lists from M3U/TXT files, maintain a persistent local channel database, play streams directly within the application using LibVLC, view an EPG programme guide, and discover new streams by scanning your network.
 
 ---
 
@@ -39,11 +39,38 @@ A transparent topmost overlay window (works around the WPF/LibVLC Airspace limit
 | **Volume slider** | Adjust volume 0–100 % with percentage label |
 | **Media info** | Shows video codec, audio codec, and channel layout (e.g. `Video: h264  \|  Audio: mp3  \|  Stereo`) |
 
+### EPG Guide
+A full-day Electronic Programme Guide rendered as a scrollable timeline:
+
+| Feature | Description |
+|---|---|
+| **Timeline header** | Hour and half-hour tick marks spanning 00:00–24:00 |
+| **Now indicator** | A vertical red line and real-time clock mark the current position |
+| **Programme blocks** | Per-channel rows showing title, time range, and on-air highlight |
+| **Click to play** | Click any programme block to start playing that channel |
+| **Auto-refresh** | EPG data is downloaded, cached, and refreshed at a configurable interval (default: every 4 hours) |
+| **XMLTV / gzip support** | Fetches plain `.xml` or gzip-compressed XMLTV feeds |
+| **Manual reload** | Reload button forces an immediate EPG re-fetch |
+
+### Channel Scanner
+Discover live streams on your local network without importing any file:
+
+| Feature | Description |
+|---|---|
+| **IP range scan** | Enter a start and end IP address and a port range to probe |
+| **Parallel probing** | Configurable thread count (1–50) and per-stream timeout (1–60 s) |
+| **LibVLC probing** | Uses a headless LibVLC instance (`--vout=dummy`) to verify each stream is playable |
+| **Unicast / multicast** | Probes via the configured unicast relay or directly as `rtp://` multicast |
+| **Color-coded log** | Real-time scan log with color coding: found, new, already-exists, error |
+| **Preview & add** | Preview any found channel in the player, or add individual / all new channels to the database |
+| **Scan settings persist** | IP range, port range, thread count, and timeout are saved to `AppSettings` |
+
 ### Settings
 - Configure **channel group names** (used for filtering and import grouping)
 - Set a custom **channel logo URL template** (default: `https://live.fanmingming.cn/tv/{0}.png`)
-- Set a custom **EPG URL** for Electronic Programme Guide data
+- Set a custom **EPG URL** for Electronic Programme Guide data (default: `https://live.fanmingming.cn/e.xml`)
 - Set a custom **unicast host** for stream URL conversion
+- Configure **EPG refresh interval** in hours (default: 4)
 
 ---
 
@@ -64,16 +91,27 @@ IPTVChannelManager/
 │   ├── ParseHelper.cs
 │   ├── PropertyObserver.cs
 │   └── TypeHelper.cs
-├── MainWindow.xaml/.cs          # Main channel management UI
-├── MainWindowViewModel.cs       # Commands: Import, Export, Play, Add/Remove channels
-├── PlayerWindow.xaml/.cs        # LibVLC player window + fullscreen logic + mouse hook
-├── PlayerOverlayWindow.xaml/.cs # Transparent overlay window (HUD)
-├── PlayerOverlayViewModel.cs    # Overlay state + ToggleFullscreenCommand + ToggleMuteCommand
-├── SettingWindow.xaml/.cs       # Settings dialog
-├── SettingWindowViewModel.cs
-├── Channel.cs                   # Channel model (BindableBase + JSON serialization)
+├── Models/
+│   └── Channel.cs               # Channel model (BindableBase + JSON serialization)
+├── Services/
+│   ├── EpgService.cs            # Singleton XMLTV download, parse, and auto-refresh cache
+│   ├── ImportExportHelper.cs    # M3U / TXT import and export logic
+│   └── WindowService.cs         # IWindowService abstraction for opening child windows
+├── ViewModels/
+│   ├── MainWindowViewModel.cs   # Commands: Import, Export, Play, Add/Remove, EPG, Scanner
+│   ├── PlayerViewModel.cs       # Stream URL construction and window title logic
+│   ├── PlayerOverlayViewModel.cs# Overlay state: ToggleFullscreen, ToggleMute, volume
+│   ├── EpgGuideViewModel.cs     # EPG timeline rows, now-indicator, click-to-play
+│   ├── ScannerWindowViewModel.cs# IP range scan: thread pool, LibVLC probing, log
+│   └── SettingWindowViewModel.cs
+├── Views/
+│   ├── MainWindow.xaml/.cs      # Main channel management UI
+│   ├── PlayerWindow.xaml/.cs    # LibVLC player window + fullscreen logic + mouse hook
+│   ├── PlayerOverlayWindow.xaml/.cs # Transparent overlay window (HUD)
+│   ├── EpgGuideWindow.xaml/.cs  # EPG programme guide window
+│   ├── ScannerWindow.xaml/.cs   # Network stream scanner window
+│   └── SettingWindow.xaml/.cs   # Settings dialog
 ├── AppSettings.cs               # Application settings singleton (persisted)
-├── ImportExportHelper.cs        # M3U / TXT import and export logic
 ├── Constants.cs                 # All application-wide constants
 └── logos/                       # Bundled channel logo image assets
 ```
@@ -83,6 +121,9 @@ IPTVChannelManager/
 - **Airspace workaround**: LibVLCSharp uses `HwndHost` internally, which prevents standard WPF overlays from rendering on top of the video. The player HUD is implemented as a separate transparent `Window` (`PlayerOverlayWindow`) that tracks the player window's position and size.
 - **Global mouse hook**: A `WH_MOUSE_LL` low-level mouse hook is used to detect double-clicks on the VLC video surface (which does not receive standard WPF input events).
 - **Commands over events**: All button interactions in the overlay are bound to `DelegateCommand` properties on `PlayerOverlayViewModel` — no logic lives in code-behind.
+- **IWindowService abstraction**: Child windows (`PlayerWindow`, `EpgGuideWindow`, `ScannerWindow`, `SettingWindow`) are opened through `IWindowService` / `WindowService`, keeping view-model code testable and decoupled from concrete `Window` types.
+- **EPG cache**: `EpgService` (singleton) downloads and parses the XMLTV feed on a background thread, stores an atomically replaced snapshot, and broadcasts `CacheRefreshed` to subscribers. Supports plain and gzip-compressed feeds.
+- **Headless LibVLC probe**: The scanner creates a single `LibVLC("--vout=dummy", "--aout=dummy")` instance and probes each candidate URL with a configurable timeout using a `SemaphoreSlim`-capped thread pool.
 
 ---
 
@@ -90,11 +131,13 @@ IPTVChannelManager/
 
 | Package | Version | Purpose |
 |---|---|---|
-| [LibVLCSharp.WPF](https://github.com/videolan/libvlcsharp) | 3.9.2 | WPF VideoView control |
-| [VideoLAN.LibVLC.Windows](https://www.nuget.org/packages/VideoLAN.LibVLC.Windows) | 3.0.21 | Native libvlc binaries for Windows |
+| [LibVLCSharp.WPF](https://github.com/videolan/libvlcsharp) | 3.9.7.1 | WPF VideoView control |
+| [VideoLAN.LibVLC.Windows](https://www.nuget.org/packages/VideoLAN.LibVLC.Windows) | 3.0.23.1 | Native libvlc binaries for Windows |
 | [MaterialDesignThemes](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit) | 5.2.1 | UI theme and icons |
-| [Newtonsoft.Json](https://www.newtonsoft.com/json) | 13.0.3 | Channel database JSON serialization |
+| [Newtonsoft.Json](https://www.newtonsoft.com/json) | 13.0.4 | Channel database JSON serialization |
 | [Microsoft-WindowsAPICodePack-Shell](https://github.com/contre/Windows-API-Code-Pack-1.1) | 1.1.5 | Native file/folder picker dialogs |
+| [Microsoft.Xaml.Behaviors.Wpf](https://github.com/microsoft/XamlBehaviorsWpf) | 1.1.142 | WPF XAML behaviors (e.g. `AutoScrollBehavior`) |
+| [XmlTvSharp](https://www.nuget.org/packages/XmlTvSharp) | 1.1.2 | XMLTV EPG feed parsing |
 | m3u-parser *(local)* | — | M3U/M3U8 playlist parsing (`lib/m3u-parser.dll`) |
 
 ---
