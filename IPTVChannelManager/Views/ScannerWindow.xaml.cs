@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using IPTVChannelManager.Common;
 using IPTVChannelManager.Models;
+using IPTVChannelManager.Services;
 using IPTVChannelManager.ViewModels;
 
 namespace IPTVChannelManager.Views

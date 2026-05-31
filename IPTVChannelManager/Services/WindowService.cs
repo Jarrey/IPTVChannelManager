@@ -1,11 +1,22 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using IPTVChannelManager.Common;
 using IPTVChannelManager.Models;
 using IPTVChannelManager.Views;
 
 namespace IPTVChannelManager.Services
 {
+    /// <summary>
+    /// Abstracts window-navigation so ViewModels can request UI transitions
+    /// without depending on concrete Window types.
+    /// </summary>
+    public interface IWindowService
+    {
+        void OpenSettingWindow();
+        void OpenScannerWindow(ObservableCollection<Channel> channels);
+        void OpenPlayerWindow(Channel channel);
+        void OpenEpgGuideWindow(ObservableCollection<Channel> channels);
+    }
+
     /// <summary>
     /// Concrete implementation of <see cref="IWindowService"/> that opens real WPF windows.
     /// </summary>

@@ -65,6 +65,9 @@ namespace IPTVChannelManager.ViewModels
                 : $"{Constants.DefaultMulticastHost}{_currentChannel.Url}";
 
             WindowTitle = $"{_currentChannel.Name} - {url}";
+            RaisePropertyChanged(nameof(CurrentChannelName));
+            RaisePropertyChanged(nameof(CurrentLogoName));
+            RaisePropertyChanged(nameof(CurrentLogoUrl));
             return url;
         }
 

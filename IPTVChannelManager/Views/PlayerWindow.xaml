@@ -5,8 +5,8 @@
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                    xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
                    xmlns:common="clr-namespace:IPTVChannelManager.Common"
-                   mc:Ignorable="d" ShowIcon="False"
-                   Title="{Binding WindowTitle}" MinHeight="400" MinWidth="800">
+                   mc:Ignorable="d" ShowIcon="True"
+                   Title="{Binding WindowTitle}" MinHeight="400" MinWidth="800" Icon="{Binding CurrentLogoUrl}">
     <Grid Background="Black">
         <vlc:VideoView x:Name="VideoPlayer" Margin="0" Padding="0"/>
     </Grid>
