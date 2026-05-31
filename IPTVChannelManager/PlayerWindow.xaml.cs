@@ -15,6 +15,7 @@ namespace IPTVChannelManager
     /// </summary>
     public partial class PlayerWindow : BaseWindow, IDisposable
     {
+        private static PlayerWindow? _instance;
         private LibVLC _libVlc;
         private MediaPlayer _mediaPlayer;
         private PlayerOverlayWindow _overlay;
@@ -27,27 +28,51 @@ namespace IPTVChannelManager
         private bool _isMuted;
         private int _lastVolume = 50;
 
+        private Channel _currentChannel;
         private string? _currentChannelName;
         private string? _currentLogoName;
         private DispatcherTimer? _epgTimer;
 
-        public PlayerWindow()
+        public static void ShowInstance(Channel channel)
+        {
+            if (_instance == null)
+            {
+                _instance = new PlayerWindow(channel);
+                _instance.Closed += (s, e) => _instance = null;
+                _instance.Show();
+            }
+            else
+            {
+                // Refresh channel list reference and rebuild
+                _instance._currentChannel = channel;
+                _instance.PlayNetworkStream();
+                if (_instance.WindowState == WindowState.Minimized)
+                    _instance.WindowState = WindowState.Normal;
+                _instance.Activate();
+            }
+        }
+
+        private PlayerWindow(Channel channel)
         {
             InitializeComponent();
             Core.Initialize();
             _libVlc = new LibVLC();
-            _mediaPlayer = new MediaPlayer(_libVlc);
-            _mediaPlayer.EnableHardwareDecoding = true;
+            _mediaPlayer = new MediaPlayer(_libVlc)
+            {
+                EnableHardwareDecoding = true,
+                Volume = 50
+            };
             VideoPlayer.MediaPlayer = _mediaPlayer;
-            _mediaPlayer.Volume = 50;
 
-            Loaded          += PlayerWindow_Loaded;
-            KeyDown         += PlayerWindow_KeyDown;
+            Loaded += PlayerWindow_Loaded;
+            KeyDown += PlayerWindow_KeyDown;
             LocationChanged += (s, e) => _overlay?.SyncPosition(this);
-            SizeChanged     += (s, e) => _overlay?.SyncPosition(this);
-            StateChanged    += (s, e) => _overlay?.SyncPosition(this);
-            Activated       += (s, e) => { if (_overlay != null) _overlay.Topmost = true; };
-            Deactivated     += (s, e) => { if (_overlay != null) _overlay.Topmost = false; };
+            SizeChanged += (s, e) => _overlay?.SyncPosition(this);
+            StateChanged += (s, e) => _overlay?.SyncPosition(this);
+            Activated += (s, e) => { if (_overlay != null) _overlay.Topmost = true; };
+            Deactivated += (s, e) => { if (_overlay != null) _overlay.Topmost = false; };
+
+            _currentChannel = channel;
         }
 
         #region Properties
@@ -58,6 +83,7 @@ namespace IPTVChannelManager
         {
             InstallMouseHook();
             InitOverlay();
+            PlayNetworkStream();
         }
 
         #region Overlay
@@ -102,9 +128,9 @@ namespace IPTVChannelManager
 
         #region Low-level Mouse Hook - Double-click Detection
         private const int WH_MOUSE_LL = 14;
-        private const int WM_MOUSEMOVE    = 0x0200;
-        private const int WM_LBUTTONDOWN  = 0x0201;
-        private const int WM_MOUSEWHEEL   = 0x020A;
+        private const int WM_MOUSEMOVE = 0x0200;
+        private const int WM_LBUTTONDOWN = 0x0201;
+        private const int WM_MOUSEWHEEL = 0x020A;
 
         private POINT _lastMovePoint;
         private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
@@ -223,15 +249,20 @@ namespace IPTVChannelManager
         }
         #endregion Low-level Mouse Hook - Double-click Detection
 
-        public void PlayNetworkStream(string streamUrl, string channelName = null, string logoUrl = null)
+        private void PlayNetworkStream()
         {
             try
             {
-                _overlayVm?.SetChannelInfo(channelName, logoUrl);
-                _currentChannelName = channelName;
+                if (_currentChannel == null || string.IsNullOrWhiteSpace(_currentChannel.Url)) return;
+                bool unicastMulticast = AppSettings.Instance.Get<bool>(AppSettings.ImportExportWithCustomHost);
+                string unicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
+                string streamUrl = unicastMulticast ? $"{unicastHost}{_currentChannel.Url}" : $"{Constants.DefaultMulticastHost}{_currentChannel.Url}";
+                Title = $"{_currentChannel.Name} - {streamUrl}";
+                _overlayVm?.SetChannelInfo(_currentChannel.Name, _currentChannel.LogoUrl);
+                _currentChannelName = _currentChannel.Name;
                 // Logo filename (without extension) often matches EPG display name
-                _currentLogoName = !string.IsNullOrEmpty(logoUrl)
-                    ? System.IO.Path.GetFileNameWithoutExtension(logoUrl)
+                _currentLogoName = !string.IsNullOrEmpty(_currentChannel.LogoUrl)
+                    ? System.IO.Path.GetFileNameWithoutExtension(_currentChannel.LogoUrl)
                     : null;
                 RefreshEpg();
                 using (var media = new Media(_libVlc, new Uri(streamUrl)))

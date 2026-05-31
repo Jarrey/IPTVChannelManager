@@ -17,14 +17,14 @@ namespace IPTVChannelManager
     public class EpgProgrammeBlock : BindableBase
     {
         /// <summary>Horizontal offset in pixels from midnight.</summary>
-        public double Left  { get; }
+        public double Left { get; }
         /// <summary>Width in pixels proportional to duration.</summary>
         public double Width { get; }
-        public string Title     { get; }
+        public string Title { get; }
         public string TimeRange { get; }
-        public string Tooltip   { get; }
+        public string Tooltip { get; }
         /// <summary>The channel this block belongs to (for click-to-play).</summary>
-        public Channel Channel  { get; }
+        public Channel Channel { get; }
 
         private readonly DateTime _start;
         private readonly DateTime _stop;
@@ -39,15 +39,15 @@ namespace IPTVChannelManager
         public EpgProgrammeBlock(double left, double width, string title, string timeRange,
                                   bool isCurrent, Channel channel, DateTime start, DateTime stop)
         {
-            Left              = left;
-            Width             = width;
-            Title             = title;
-            TimeRange         = timeRange;
-            Tooltip           = $"{title}\n{timeRange}";
+            Left = left;
+            Width = width;
+            Title = title;
+            TimeRange = timeRange;
+            Tooltip = $"{title}\n{timeRange}";
             IsCurrentlyAiring = isCurrent;
-            Channel           = channel;
-            _start            = start;
-            _stop             = stop;
+            Channel = channel;
+            _start = start;
+            _stop = stop;
         }
 
         /// <summary>Re-evaluate whether this block is currently on-air.</summary>
@@ -58,16 +58,13 @@ namespace IPTVChannelManager
     /// <summary>One horizontal row in the EPG guide: one channel + its day's programmes.</summary>
     public class EpgGuideRow
     {
-        public Channel                          Channel { get; }
-        public IReadOnlyList<EpgProgrammeBlock> Blocks  { get; }
-        public ICommand                         PlayChannelCommand { get; }
+        public Channel Channel { get; }
+        public IReadOnlyList<EpgProgrammeBlock> Blocks { get; }
 
-        public EpgGuideRow(Channel channel, IReadOnlyList<EpgProgrammeBlock> blocks,
-                            ICommand playChannelCommand)
+        public EpgGuideRow(Channel channel, IReadOnlyList<EpgProgrammeBlock> blocks)
         {
-            Channel            = channel;
-            Blocks             = blocks;
-            PlayChannelCommand = playChannelCommand;
+            Channel = channel;
+            Blocks = blocks;
         }
     }
 
@@ -75,12 +72,8 @@ namespace IPTVChannelManager
     {
         // ── Layout constants ─────────────────────────────────────────────────
         public const double PixelsPerMinute = 2.0;       // 120 px/h, 2 880 px/24 h
-        public const double RowHeight       = 44.0;
-        public const double TotalWidth      = 24 * 60 * PixelsPerMinute; // 2 880
-
-        // ── Events ──────────────────────────────────────────────────────────
-        /// <summary>Raised when the user clicks a channel or a currently-airing block.</summary>
-        public event Action<Channel>? PlayRequested;
+        public const double RowHeight = 44.0;
+        public const double TotalWidth = 24 * 60 * PixelsPerMinute; // 2 880
 
         // ── Bindable properties ──────────────────────────────────────────────
         private ObservableCollection<EpgGuideRow> _rows = new();
@@ -132,6 +125,13 @@ namespace IPTVChannelManager
             internal set => SetProperty(ref _isLoading, value);
         }
 
+        private ICommand _playChannelCommand;
+        public ICommand PlayChannelCommand
+        {
+            get => _playChannelCommand;
+            private set => SetProperty(ref _playChannelCommand, value);
+        }
+
         /// <summary>Hour labels for the fixed time-header row: (Left offset, "HH:00") pairs.</summary>
         public IReadOnlyList<TimeMark> TimeMarks { get; }
 
@@ -146,15 +146,16 @@ namespace IPTVChannelManager
 
         public EpgGuideViewModel()
         {
-            var marks     = new List<TimeMark>(24);
+            var marks = new List<TimeMark>(24);
             var halfMarks = new List<TimeMark>(24);
             for (int h = 0; h < 24; h++)
             {
                 marks.Add(new TimeMark(h * 60 * PixelsPerMinute, $"{h:D2}:00"));
                 halfMarks.Add(new TimeMark((h * 60 + 30) * PixelsPerMinute, $"{h:D2}:30"));
             }
-            TimeMarks     = marks;
+            TimeMarks = marks;
             HalfHourMarks = halfMarks;
+            PlayChannelCommand = new DelegateCommand<Channel>(PlayRequested);
 
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _timer.Tick += (s, e) => OnMinuteTick();
@@ -165,12 +166,12 @@ namespace IPTVChannelManager
 
         public async Task LoadAsync(IEnumerable<Channel> channels)
         {
-            IsLoading  = true;
+            IsLoading = true;
             StatusText = "Loading EPG data\u2026";
 
             // Snapshot to a list so the background thread can iterate safely
             var channelList = channels.ToList();
-            var now         = DateTime.Now;
+            var now = DateTime.Now;
 
             var rows = await Task.Run(() =>
             {
@@ -178,17 +179,16 @@ namespace IPTVChannelManager
                 foreach (var ch in channelList.Where(c => !c.Ignore))
                 {
                     string logoName = System.IO.Path.GetFileNameWithoutExtension(ch.LogoUrl ?? "");
-                    var progs  = EpgService.Instance.GetTodayProgrammes(ch.Name, logoName);
+                    var progs = EpgService.Instance.GetTodayProgrammes(ch.Name, logoName);
                     var blocks = BuildBlocks(progs, now, ch);
-                    var playCmd = new DelegateCommand<Channel>(c => PlayRequested?.Invoke(c));
-                    result.Add(new EpgGuideRow(ch, blocks, playCmd));
+                    result.Add(new EpgGuideRow(ch, blocks));
                 }
                 return result;
             });
 
-            Rows            = new ObservableCollection<EpgGuideRow>(rows);
+            Rows = new ObservableCollection<EpgGuideRow>(rows);
             TotalRowsHeight = rows.Count * RowHeight;
-            StatusText      = rows.Count > 0
+            StatusText = rows.Count > 0
                 ? $"{rows.Count} channels  \u00b7  {rows.Count(r => r.Blocks.Count > 0)} with EPG"
                 : "No channels";
 
@@ -199,6 +199,19 @@ namespace IPTVChannelManager
         public void Cleanup() => _timer.Stop();
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        private void PlayRequested(Channel channel)
+        {
+            if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
+            try
+            {
+                PlayerWindow.ShowInstance(channel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex.Message}, {ex}");
+            }
+        }
 
         private void OnMinuteTick()
         {
@@ -216,30 +229,29 @@ namespace IPTVChannelManager
             if (progs.Count == 0) return Array.Empty<EpgProgrammeBlock>();
 
             var todayStart = DateTime.Today;
-            var todayEnd   = todayStart.AddDays(1);
-            var blocks     = new List<EpgProgrammeBlock>(progs.Count);
+            var todayEnd = todayStart.AddDays(1);
+            var blocks = new List<EpgProgrammeBlock>(progs.Count);
 
             foreach (var p in progs)
             {
                 var start = p.Start.ToLocalTime().DateTime;
-                var stop  = p.Stop.ToLocalTime().DateTime;
+                var stop = p.Stop.ToLocalTime().DateTime;
 
                 // Clamp to the 24-hour window
                 var ws = start < todayStart ? todayStart : start;
-                var we = stop  > todayEnd   ? todayEnd   : stop;
+                var we = stop > todayEnd ? todayEnd : stop;
                 if (we <= ws) continue;
 
-                double left  = (ws - todayStart).TotalMinutes * PixelsPerMinute;
-                double width = (we - ws).TotalMinutes          * PixelsPerMinute;
+                double left = (ws - todayStart).TotalMinutes * PixelsPerMinute;
+                double width = (we - ws).TotalMinutes * PixelsPerMinute;
                 if (width < 2) continue;
 
                 string title = p.Titles.TryGetValue("zh", out var t) ? t
                              : p.Titles.Values.FirstOrDefault() ?? string.Empty;
-                string timeRange  = $"{start:HH:mm}–{stop:HH:mm}";
-                bool   isCurrent  = start <= now && stop > now;
+                string timeRange = $"{start:HH:mm}–{stop:HH:mm}";
+                bool isCurrent = start <= now && stop > now;
 
-                blocks.Add(new EpgProgrammeBlock(left, width, title, timeRange, isCurrent,
-                                                  channel, start, stop));
+                blocks.Add(new EpgProgrammeBlock(left, width, title, timeRange, isCurrent, channel, start, stop));
             }
 
             return blocks;

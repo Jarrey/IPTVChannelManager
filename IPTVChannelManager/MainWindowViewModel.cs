@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 namespace IPTVChannelManager
@@ -19,8 +20,6 @@ namespace IPTVChannelManager
         private string[] _channelGroups;
         private bool _unicastMulticastSwitch;
         private string _unicastHost;
-        private int _activeCount;
-        private PlayerWindow _playerWindow;
 
         public MainWindowViewModel()
         {
@@ -43,6 +42,7 @@ namespace IPTVChannelManager
             PlayCommand = new DelegateCommand<Channel>(Play);
             AddAllCommand = new DelegateCommand(AddAllChannels);
             RemoveAllCommand = new DelegateCommand(RemoveAllChannels);
+            ShowEpgGuideCommand = new DelegateCommand(() => EpgGuideWindow.ShowInstance(Channels ?? new ObservableCollection<Channel>()));
         }
 
         #region Properties
@@ -140,6 +140,7 @@ namespace IPTVChannelManager
         public ICommand ExportToTxtCommand { get; }
         public ICommand ExportToM3uCommand { get; }
         public ICommand PlayCommand { get; }
+        public ICommand ShowEpgGuideCommand { get; }
         #endregion Commands
 
         #region Methods
@@ -157,7 +158,7 @@ namespace IPTVChannelManager
                 {
                     List<Channel> channelDB = JsonConvert.DeserializeObject<List<Channel>>(File.ReadAllText(DBPath));
                     List<string> groupOrder = ChannelGroups.ToList();
-                    return new ObservableCollection<Channel>(channelDB?.OrderBy(c=> c.Id == "-1" ? int.MaxValue : (c.Id.ToNullableInt() ?? int.MinValue))?.OrderBy(c => string.IsNullOrWhiteSpace(c.Group) ? int.MaxValue : groupOrder.IndexOf(c.Group))?.ToList());
+                    return new ObservableCollection<Channel>(channelDB?.OrderBy(c => c.Id == "-1" ? int.MaxValue : (c.Id.ToNullableInt() ?? int.MinValue))?.OrderBy(c => string.IsNullOrWhiteSpace(c.Group) ? int.MaxValue : groupOrder.IndexOf(c.Group))?.ToList());
                 }
                 catch (Exception ex)
                 {
@@ -352,18 +353,7 @@ namespace IPTVChannelManager
             if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
             try
             {
-                string streamUrl = UnicastMulticastSwitch ? $"{UnicastHost}{channel.Url}" : $"{Constants.DefaultMulticastHost}{channel.Url}";
-                if (_playerWindow == null || _playerWindow.IsDisposed)
-                {
-                    _playerWindow = new PlayerWindow();
-                    _playerWindow.Show();
-                }
-                else
-                {
-                    _playerWindow.Activate();
-                }
-                _playerWindow.Title = $"{channel.Name} - {streamUrl}";
-                _playerWindow.PlayNetworkStream(streamUrl, channel.Name, channel.LogoUrl);
+                PlayerWindow.ShowInstance(channel);
             }
             catch (Exception ex)
             {

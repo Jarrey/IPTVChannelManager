@@ -10,8 +10,6 @@ namespace IPTVChannelManager
     /// </summary>
     public partial class ScannerWindow : BaseWindow
     {
-        private PlayerWindow _playerWindow;
-
         public ScannerWindow(ObservableCollection<Channel> existingChannels)
         {
             InitializeComponent();
@@ -43,17 +41,15 @@ namespace IPTVChannelManager
 
         private void OnPlayChannelRequested(Channel channel)
         {
-            if (_playerWindow == null || _playerWindow.IsDisposed)
+            if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
+            try
             {
-                _playerWindow = new PlayerWindow();
-                _playerWindow.Show();
+                PlayerWindow.ShowInstance(channel);
             }
-            else
+            catch (Exception ex)
             {
-                _playerWindow.Activate();
+                Console.WriteLine($"{ex.Message}, {ex}");
             }
-            _playerWindow.Title = $"{channel.Name} - {channel.Url}";
-            _playerWindow.PlayNetworkStream(channel.Url, channel.Name);
         }
     }
 }

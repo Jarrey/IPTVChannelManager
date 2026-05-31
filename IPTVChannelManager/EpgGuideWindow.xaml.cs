@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace IPTVChannelManager
 {
@@ -43,7 +42,6 @@ namespace IPTVChannelManager
         {
             _channels = channels;
             _vm = new EpgGuideViewModel();
-            _vm.PlayRequested += OnPlayRequested;
             DataContext = _vm;
             InitializeComponent();
 
@@ -88,54 +86,9 @@ namespace IPTVChannelManager
             }
             finally
             {
-                _vm.IsLoading  = false;
+                _vm.IsLoading = false;
                 _reloadInProgress = false;
             }
-        }
-
-        // ── Click-to-play ─────────────────────────────────────────────────────
-
-        private void ChannelCell_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is FrameworkElement fe && fe.Tag is Channel ch)
-                OnPlayRequested(ch);
-        }
-
-        private void ProgBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is FrameworkElement fe && fe.Tag is EpgProgrammeBlock block
-                && block.IsCurrentlyAiring)
-            {
-                OnPlayRequested(block.Channel);
-                e.Handled = true;
-            }
-        }
-
-        private static PlayerWindow? _playerWindow;
-
-        private static void OnPlayRequested(Channel channel)
-        {
-            if (string.IsNullOrWhiteSpace(channel.Url)) return;
-
-            bool useUnicast = AppSettings.Instance.Get<bool>(AppSettings.ImportExportWithCustomHost);
-            string unicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
-            string streamUrl = useUnicast
-                ? $"{unicastHost}{channel.Url}"
-                : $"{Constants.DefaultMulticastHost}{channel.Url}";
-
-            if (_playerWindow == null || _playerWindow.IsDisposed)
-            {
-                _playerWindow = new PlayerWindow();
-                _playerWindow.Show();
-            }
-            else
-            {
-                if (_playerWindow.WindowState == WindowState.Minimized)
-                    _playerWindow.WindowState = WindowState.Normal;
-                _playerWindow.Activate();
-            }
-
-            _playerWindow.PlayNetworkStream(streamUrl, channel.Name, channel.LogoUrl);
         }
 
         // ── Scroll synchronisation ────────────────────────────────────────────
