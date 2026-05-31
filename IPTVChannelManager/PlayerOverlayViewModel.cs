@@ -2,6 +2,7 @@ using IPTVChannelManager.Common;
 using System;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace IPTVChannelManager
 {
@@ -16,7 +17,7 @@ namespace IPTVChannelManager
         public string ClockText
         {
             get => _clockText;
-            set => SetProperty(ref _clockText, value);
+            private set => SetProperty(ref _clockText, value);
         }
 
         // ── Channel info ─────────────────────────────────────────────────────
@@ -25,21 +26,21 @@ namespace IPTVChannelManager
         public string ChannelName
         {
             get => _channelName;
-            set => SetProperty(ref _channelName, value);
+            private set => SetProperty(ref _channelName, value);
         }
 
         private BitmapImage? _channelLogo;
         public BitmapImage? ChannelLogo
         {
             get => _channelLogo;
-            set => SetProperty(ref _channelLogo, value);
+            private set => SetProperty(ref _channelLogo, value);
         }
 
         private Thickness _topInfoBarMargin = new Thickness(Constants.OverlayTopBarMarginHorizontal, Constants.OverlayTopBarMarginTopNormal, Constants.OverlayTopBarMarginHorizontal, 0);
         public Thickness TopInfoBarMargin
         {
             get => _topInfoBarMargin;
-            set => SetProperty(ref _topInfoBarMargin, value);
+            private set => SetProperty(ref _topInfoBarMargin, value);
         }
 
         // ── Control bar visibility ────────────────────────────────────────────
@@ -48,7 +49,7 @@ namespace IPTVChannelManager
         public Visibility ControlBarVisibility
         {
             get => _controlBarVisibility;
-            set => SetProperty(ref _controlBarVisibility, value);
+            private set => SetProperty(ref _controlBarVisibility, value);
         }
 
         // ── Fullscreen ────────────────────────────────────────────────────────
@@ -57,14 +58,14 @@ namespace IPTVChannelManager
         public string FullscreenIcon
         {
             get => _fullscreenIcon;
-            set => SetProperty(ref _fullscreenIcon, value);
+            private set => SetProperty(ref _fullscreenIcon, value);
         }
 
         private string _fullscreenTooltip = Constants.OverlayTooltipFullscreen;
         public string FullscreenTooltip
         {
             get => _fullscreenTooltip;
-            set => SetProperty(ref _fullscreenTooltip, value);
+            private set => SetProperty(ref _fullscreenTooltip, value);
         }
 
         // ── Volume ────────────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ namespace IPTVChannelManager
         public string VolumeIcon
         {
             get => _volumeIcon;
-            set => SetProperty(ref _volumeIcon, value);
+            private set => SetProperty(ref _volumeIcon, value);
         }
 
         // ── EPG / current programme ───────────────────────────────────────────
@@ -108,6 +109,17 @@ namespace IPTVChannelManager
         /// <summary>Command bound to the mute button.</summary>
         public DelegateCommand ToggleMuteCommand { get; }
 
+        /// <summary>Command bound to MouseEnter on the overlay — shows the control bar.</summary>
+        public DelegateCommand ShowControlBarCommand { get; }
+
+        /// <summary>Command bound to the Window.Closed event — stops background timers.</summary>
+        public DelegateCommand CleanupCommand { get; }
+
+        // ── Timers ────────────────────────────────────────────────────────────
+
+        private readonly DispatcherTimer _clockTimer;
+        private readonly DispatcherTimer _hideTimer;
+
         // ── Constructor ───────────────────────────────────────────────────────
 
         /// <summary>
@@ -116,15 +128,48 @@ namespace IPTVChannelManager
         /// </summary>
         public PlayerOverlayViewModel(Action toggleFullscreen, Action toggleMute)
         {
-            ToggleFullscreenCommand = new DelegateCommand(toggleFullscreen);
-            ToggleMuteCommand       = new DelegateCommand(toggleMute);
+            ToggleFullscreenCommand  = new DelegateCommand(toggleFullscreen);
+            ToggleMuteCommand        = new DelegateCommand(toggleMute);
+            ShowControlBarCommand    = new DelegateCommand(ShowControlBar);
+            CleanupCommand           = new DelegateCommand(Cleanup);
+
+            _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Constants.OverlayClockIntervalSeconds) };
+            _clockTimer.Tick += (s, e) => ClockText = DateTime.Now.ToString(Constants.OverlayClockFormat);
+            _clockTimer.Start();
+
+            _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Constants.OverlayHideDelaySeconds) };
+            _hideTimer.Tick += (s, e) =>
+            {
+                _hideTimer.Stop();
+                ControlBarVisibility = Visibility.Collapsed;
+            };
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────────
+        // ── Control bar ───────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Update all channel display properties from a channel object.
-        /// </summary>
+        /// <summary>Show the control bar and reset the auto-hide timer.</summary>
+        public void ShowControlBar()
+        {
+            ControlBarVisibility = Visibility.Visible;
+            _hideTimer.Stop();
+            _hideTimer.Start();
+        }
+
+        /// <summary>Immediately hide the control bar.</summary>
+        private void HideControlBar()
+        {
+            ControlBarVisibility = Visibility.Collapsed;
+            _hideTimer.Stop();
+        }
+
+        /// <summary>Stop all background timers. Called via <see cref="CleanupCommand"/> when the overlay window closes.</summary>
+        private void Cleanup()
+        {
+            _clockTimer.Stop();
+            _hideTimer.Stop();
+        }
+
+        // ── Channel info ──────────────────────────────────────────────────────
         public void SetChannelInfo(string channelName, string logoUrl)
         {
             ChannelName = channelName ?? string.Empty;

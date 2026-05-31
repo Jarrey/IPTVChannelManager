@@ -94,12 +94,12 @@ namespace IPTVChannelManager
             return sb.ToString();
         }
 
-        public static string RemoveHost(string url, string unicastHost)
+        private static string RemoveHost(string url, string unicastHost)
         {
             return url.Replace(unicastHost, string.Empty);
         }
 
-        public static string AddHost(string url, string unicastHost)
+        private static string AddHost(string url, string unicastHost)
         {
             return $"{unicastHost}{url}";
         }

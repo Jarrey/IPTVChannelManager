@@ -1,99 +1,39 @@
-using System;
-using System.Windows;
-using System.Windows.Threading;
+﻿using System.Windows;
 
 namespace IPTVChannelManager
 {
     /// <summary>
-    /// Transparent overlay window rendered on top of the VLC VideoView to work around the WPF Airspace limitation.
-    /// All UI state and commands are managed by <see cref="PlayerOverlayViewModel"/> via data binding.
+    /// Transparent overlay window rendered on top of the VLC VideoView.
+    /// All logic lives in <see cref="PlayerOverlayViewModel"/>; this class
+    /// only handles window-geometry concerns.
     /// </summary>
     public partial class PlayerOverlayWindow : Window
     {
-        private readonly DispatcherTimer _clockTimer;
-        private readonly DispatcherTimer _hideTimer;
-
-        /// <summary>The ViewModel that drives all bindings in this window.</summary>
-        public PlayerOverlayViewModel VM { get; }
-
-        public PlayerOverlayWindow(Action toggleFullscreen, Action toggleMute)
+        public PlayerOverlayWindow(PlayerOverlayViewModel vm)
         {
-            VM = new PlayerOverlayViewModel(toggleFullscreen, toggleMute);
             InitializeComponent();
-            DataContext = VM;
-
-            // Real-time clock, refreshed every second
-            _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Constants.OverlayClockIntervalSeconds) };
-            _clockTimer.Tick += (s, e) => VM.ClockText = DateTime.Now.ToString(Constants.OverlayClockFormat);
-            _clockTimer.Start();
-
-            // Auto-hide timer for the control bar
-            _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Constants.OverlayHideDelaySeconds) };
-            _hideTimer.Tick += (s, e) =>
-            {
-                _hideTimer.Stop();
-                VM.ControlBarVisibility = Visibility.Collapsed;
-            };
+            DataContext = vm;
         }
 
-        /// <summary>Show the control bar and reset the auto-hide timer.</summary>
-        public void ShowControlBar()
-        {
-            VM.ControlBarVisibility = Visibility.Visible;
-            _hideTimer.Stop();
-            _hideTimer.Start();
-        }
+        // ── Window geometry (cannot live in a ViewModel) ──────────────────────
 
-        /// <summary>Immediately hide the control bar.</summary>
-        public void HideControlBar()
-        {
-            VM.ControlBarVisibility = Visibility.Collapsed;
-            _hideTimer.Stop();
-        }
-
-        /// <summary>Set the channel name and logo displayed in the top-left info bar.</summary>
-        public void SetChannelInfo(string channelName, string logoUrl)
-            => VM.SetChannelInfo(channelName, logoUrl);
-
-        /// <summary>Update the fullscreen button icon and top bar margin.</summary>
-        public void UpdateFullscreenIcon(bool isFullscreen)
-            => VM.SetFullscreen(isFullscreen);
-
-        /// <summary>Update the mute button icon.</summary>
-        public void UpdateMuteIcon(bool isMuted)
-            => VM.SetMuted(isMuted);
-
-        /// <summary>Update the EPG current-programme line in the channel info bar.</summary>
-        public void SetEpgText(string text) => VM.EpgText = text;
-
-        /// <summary>Sync overlay position and size to the owner window (supports multi-monitor).</summary>
         public void SyncPosition(Window owner)
         {
             if (owner.WindowState == WindowState.Maximized)
             {
-                var hwnd = new System.Windows.Interop.WindowInteropHelper(owner).Handle;
+                var hwnd   = new System.Windows.Interop.WindowInteropHelper(owner).Handle;
                 var screen = System.Windows.Forms.Screen.FromHandle(hwnd);
                 var bounds = screen.Bounds;
-                Left = bounds.Left;
-                Top = bounds.Top;
-                Width = bounds.Width;
-                Height = bounds.Height;
+                Left = bounds.Left;   Top    = bounds.Top;
+                Width = bounds.Width; Height = bounds.Height;
             }
             else
             {
-                Left = owner.Left;
-                Top = owner.Top + 30;
-                Width = owner.ActualWidth;
+                Left   = owner.Left;
+                Top    = owner.Top + 30;
+                Width  = owner.ActualWidth;
                 Height = owner.ActualHeight - 30;
             }
         }
-
-        protected override void OnClosed(EventArgs e)
-        {
-            _clockTimer.Stop();
-            _hideTimer.Stop();
-            base.OnClosed(e);
-        }
     }
 }
-

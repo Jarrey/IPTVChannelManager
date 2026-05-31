@@ -8,7 +8,7 @@ namespace IPTVChannelManager.Common
 {
     public abstract class BaseWindow : Window
     {
-        public static string ActivatedWindowName { get; private set; }
+        private static string ActivatedWindowName { get; set; }
         static BaseWindow()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BaseWindow), new FrameworkPropertyMetadata(typeof(BaseWindow)));

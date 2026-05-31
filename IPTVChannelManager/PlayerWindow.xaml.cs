@@ -18,7 +18,7 @@ namespace IPTVChannelManager
         private LibVLC _libVlc;
         private MediaPlayer _mediaPlayer;
         private PlayerOverlayWindow _overlay;
-        private DispatcherTimer _mouseMoveTimer;
+        private PlayerOverlayViewModel _overlayVm;
 
         private bool _isFullscreen;
         private WindowState _prevWindowState;
@@ -41,11 +41,13 @@ namespace IPTVChannelManager
             VideoPlayer.MediaPlayer = _mediaPlayer;
             _mediaPlayer.Volume = 50;
 
-            Loaded += PlayerWindow_Loaded;
-            KeyDown += PlayerWindow_KeyDown;
+            Loaded          += PlayerWindow_Loaded;
+            KeyDown         += PlayerWindow_KeyDown;
             LocationChanged += (s, e) => _overlay?.SyncPosition(this);
-            SizeChanged += (s, e) => _overlay?.SyncPosition(this);
-            StateChanged += (s, e) => _overlay?.SyncPosition(this);
+            SizeChanged     += (s, e) => _overlay?.SyncPosition(this);
+            StateChanged    += (s, e) => _overlay?.SyncPosition(this);
+            Activated       += (s, e) => { if (_overlay != null) _overlay.Topmost = true; };
+            Deactivated     += (s, e) => { if (_overlay != null) _overlay.Topmost = false; };
         }
 
         #region Properties
@@ -61,32 +63,32 @@ namespace IPTVChannelManager
         #region Overlay
         private void InitOverlay()
         {
-            _overlay = new PlayerOverlayWindow(
+            _overlayVm = new PlayerOverlayViewModel(
                 toggleFullscreen: ToggleFullscreen,
                 toggleMute: () =>
                 {
                     _isMuted = !_isMuted;
                     if (_mediaPlayer != null)
                         _mediaPlayer.Volume = _isMuted ? 0 : _lastVolume;
-                    _overlay!.VM.SetMuted(_isMuted);
-                })
-            { Owner = this };
+                    _overlayVm.SetMuted(_isMuted);
+                });
 
             // Volume slider is TwoWay-bound to VM.Volume — sync changes to VLC
-            _overlay.VM.PropertyChanged += (s, e) =>
+            _overlayVm.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName != nameof(PlayerOverlayViewModel.Volume)) return;
-                int volume = _overlay.VM.Volume;
+                int volume = _overlayVm.Volume;
                 if (_mediaPlayer != null)
                     _mediaPlayer.Volume = volume;
                 _lastVolume = volume;
                 if (_isMuted && volume > 0)
                 {
                     _isMuted = false;
-                    _overlay.VM.SetMuted(false);
+                    _overlayVm.SetMuted(false);
                 }
             };
 
+            _overlay = new PlayerOverlayWindow(_overlayVm) { Owner = this };
             _overlay.SyncPosition(this);
             _overlay.Show();
 
@@ -94,43 +96,17 @@ namespace IPTVChannelManager
             _epgTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
             _epgTimer.Tick += (s, e) => RefreshEpg();
             _epgTimer.Start();
-
-            // Mouse movement detection timer (polled via global hook)
-            _mouseMoveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-            _lastMousePos = GetCursorPos();
-            _mouseMoveTimer.Tick += (s, e) =>
-            {
-                var pos = GetCursorPos();
-                if (pos != _lastMousePos)
-                {
-                    _lastMousePos = pos;
-                    if (IsClickInsideThisWindow(new POINT { x = (int)pos.X, y = (int)pos.Y }))
-                    {
-                        _overlay?.ShowControlBar();
-                    }
-                }
-            };
-            _mouseMoveTimer.Start();
-        }
-
-        private System.Windows.Point _lastMousePos;
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetCursorPos(out POINT lpPoint);
-
-        private static System.Windows.Point GetCursorPos()
-        {
-            GetCursorPos(out POINT pt);
-            return new System.Windows.Point(pt.x, pt.y);
         }
 
         #endregion Overlay
 
         #region Low-level Mouse Hook - Double-click Detection
         private const int WH_MOUSE_LL = 14;
-        private const int WM_LBUTTONDOWN = 0x0201;
+        private const int WM_MOUSEMOVE    = 0x0200;
+        private const int WM_LBUTTONDOWN  = 0x0201;
+        private const int WM_MOUSEWHEEL   = 0x020A;
 
+        private POINT _lastMovePoint;
         private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
         private LowLevelMouseProc _mouseProc;  // Keep reference to prevent GC collection
         private IntPtr _mouseHookHandle;
@@ -191,25 +167,46 @@ namespace IPTVChannelManager
 
         private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && (int)wParam == WM_LBUTTONDOWN)
+            if (nCode >= 0)
             {
                 var hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
 
-                // Check if click is within this window's bounds
-                if (IsClickInsideThisWindow(hookStruct.pt))
+                if ((int)wParam == WM_MOUSEMOVE && IsClickInsideThisWindow(hookStruct.pt))
+                {
+                    var pt = hookStruct.pt;
+                    if (pt.x != _lastMovePoint.x || pt.y != _lastMovePoint.y)
+                    {
+                        _lastMovePoint = pt;
+                        Dispatcher.BeginInvoke(() => _overlayVm?.ShowControlBar());
+                    }
+                }
+                else if ((int)wParam == WM_LBUTTONDOWN && IsClickInsideThisWindow(hookStruct.pt))
                 {
                     var now = DateTime.UtcNow;
                     var elapsed = (now - _lastClickTime).TotalMilliseconds;
 
                     if (elapsed <= GetDoubleClickTime())
                     {
-                        _lastClickTime = DateTime.MinValue; // Reset to prevent triple-click trigger
+                        _lastClickTime = DateTime.MinValue;
                         Dispatcher.Invoke(ToggleFullscreen);
                     }
                     else
                     {
                         _lastClickTime = now;
                     }
+                }
+                else if ((int)wParam == WM_MOUSEWHEEL && IsClickInsideThisWindow(hookStruct.pt))
+                {
+                    // High word of mouseData holds the wheel delta (±120 per notch)
+                    int delta = (short)(hookStruct.mouseData >> 16);
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (_overlay == null) return;
+                        const int step = 5;
+                        _overlayVm.Volume = Math.Clamp(
+                            _overlayVm.Volume + (delta > 0 ? step : -step), 0, 100);
+                        _overlayVm.ShowControlBar();
+                    });
                 }
             }
             return CallNextHookEx(_mouseHookHandle, nCode, wParam, lParam);
@@ -230,7 +227,7 @@ namespace IPTVChannelManager
         {
             try
             {
-                _overlay?.SetChannelInfo(channelName, logoUrl);
+                _overlayVm?.SetChannelInfo(channelName, logoUrl);
                 _currentChannelName = channelName;
                 // Logo filename (without extension) often matches EPG display name
                 _currentLogoName = !string.IsNullOrEmpty(logoUrl)
@@ -252,10 +249,11 @@ namespace IPTVChannelManager
         {
             if (_overlay == null) return;
             var prog = EpgService.Instance.GetCurrentProgramme(_currentChannelName, _currentLogoName);
-            _overlay.SetEpgText(EpgService.FormatProgramme(prog));
+            _overlayVm.EpgText = EpgService.FormatProgramme(prog);
         }
 
         #region Fullscreen Toggle
+
         private void PlayerWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (_isFullscreen && e.Key == Key.Escape)
@@ -298,7 +296,7 @@ namespace IPTVChannelManager
                 _isFullscreen = false;
             }
 
-            _overlay?.UpdateFullscreenIcon(_isFullscreen);
+            _overlayVm?.SetFullscreen(_isFullscreen);
             _overlay?.SyncPosition(this);
         }
 
@@ -344,10 +342,10 @@ namespace IPTVChannelManager
         public void Dispose()
         {
             _epgTimer?.Stop();
-            _mouseMoveTimer?.Stop();
             UninstallMouseHook();
             _overlay?.Close();
             _overlay = null;
+            _overlayVm = null;
             _mediaPlayer?.Stop();
             _mediaPlayer?.Dispose();
             _libVlc?.Dispose();

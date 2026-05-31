@@ -36,7 +36,7 @@ namespace IPTVChannelManager.Common
 
         private ConcurrentDictionary<string, object> Settings { get; set; } = new ConcurrentDictionary<string, object>();
 
-        public ICollection<string> SettingNames => Settings.Keys;
+        private ICollection<string> SettingNames => Settings.Keys;
         #endregion Properties
 
         public virtual void LoadSetting(string scope = null)
