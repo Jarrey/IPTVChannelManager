@@ -1,4 +1,6 @@
 ﻿using IPTVChannelManager.Common;
+using Microsoft.Win32;
+using System.Windows.Input;
 
 namespace IPTVChannelManager.ViewModels
 {
@@ -11,6 +13,7 @@ namespace IPTVChannelManager.ViewModels
         private string _epgUrl;
         private string _unicastHost;
         private int _epgRefreshIntervalHours;
+        private string _externalPlayerPath;
 
         #endregion
 
@@ -18,11 +21,26 @@ namespace IPTVChannelManager.ViewModels
 
         public SettingWindowViewModel()
         {
-            ChannelGroups            = AppSettings.Instance.Get(AppSettings.ChannelGroups);
-            LogoUrlTemplate          = AppSettings.Instance.Get(AppSettings.LogoUrlTemplate);
-            EpgUrl                   = AppSettings.Instance.Get(AppSettings.EpgUrl);
-            UnicastHost              = AppSettings.Instance.Get(AppSettings.UnicastHost);
-            EpgRefreshIntervalHours  = AppSettings.Instance.Get<int>(AppSettings.EpgRefreshIntervalHours);
+            ChannelGroups = AppSettings.Instance.Get(AppSettings.ChannelGroups);
+            LogoUrlTemplate = AppSettings.Instance.Get(AppSettings.LogoUrlTemplate);
+            EpgUrl = AppSettings.Instance.Get(AppSettings.EpgUrl);
+            UnicastHost = AppSettings.Instance.Get(AppSettings.UnicastHost);
+            EpgRefreshIntervalHours = AppSettings.Instance.Get<int>(AppSettings.EpgRefreshIntervalHours);
+            ExternalPlayerPath = AppSettings.Instance.Get(AppSettings.ExternalPlayerPath) ?? string.Empty;
+
+            // command
+            BrowseExternalPlayerCommand = new DelegateCommand(() =>
+            {
+                var dlg = new OpenFileDialog
+                {
+                    Title = "Select External Player Executable",
+                    Filter = "Executables (*.exe)|*.exe|All files (*.*)|*.*"
+                };
+                if (dlg.ShowDialog() == true)
+                {
+                    ExternalPlayerPath = dlg.FileName;
+                }
+            });
         }
 
         #endregion
@@ -77,6 +95,20 @@ namespace IPTVChannelManager.ViewModels
                 AppSettings.Instance.Set(AppSettings.EpgRefreshIntervalHours, value);
             }
         }
+
+        public string ExternalPlayerPath
+        {
+            get => _externalPlayerPath;
+            set
+            {
+                SetProperty(ref _externalPlayerPath, value);
+                AppSettings.Instance.Set(AppSettings.ExternalPlayerPath, value);
+            }
+        }
         #endregion Properties
+
+        #region Commands
+        public ICommand BrowseExternalPlayerCommand { get; }
+        #endregion Commands
     }
 }

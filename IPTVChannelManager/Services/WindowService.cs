@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using IPTVChannelManager.Models;
 using IPTVChannelManager.Views;
@@ -53,7 +55,26 @@ namespace IPTVChannelManager.Services
 
         public void OpenPlayerWindow(Channel channel)
         {
-            PlayerWindow.ShowInstance(channel);
+            string externalPlayer = AppSettings.Instance.Get(AppSettings.ExternalPlayerPath) ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(externalPlayer) && File.Exists(externalPlayer))
+            {
+                bool unicast = AppSettings.Instance.Get<bool>(AppSettings.ImportExportWithCustomHost);
+                string host = AppSettings.Instance.Get(AppSettings.UnicastHost) ?? string.Empty;
+                string streamUrl = unicast
+                    ? $"{host}{channel.Url}"
+                    : $"{Constants.DefaultMulticastHost}{channel.Url}";
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = externalPlayer,
+                    Arguments = $"\"{streamUrl}\"",
+                    UseShellExecute = false
+                });
+            }
+            else
+            {
+                PlayerWindow.ShowInstance(channel);
+            }
         }
 
         public void OpenEpgGuideWindow(ObservableCollection<Channel> channels)

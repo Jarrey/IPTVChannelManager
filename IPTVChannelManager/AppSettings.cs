@@ -31,6 +31,7 @@ namespace IPTVChannelManager
         public const string ScanMaxThreads = nameof(ScanMaxThreads);
         public const string ScanTimeoutSeconds = nameof(ScanTimeoutSeconds);
         public const string EpgRefreshIntervalHours = nameof(EpgRefreshIntervalHours);
+        public const string ExternalPlayerPath = nameof(ExternalPlayerPath);
 
         protected override void InitSetting()
         {
@@ -48,6 +49,7 @@ namespace IPTVChannelManager
             this[ScanMaxThreads] = 5;
             this[ScanTimeoutSeconds] = 5;
             this[EpgRefreshIntervalHours] = 4;
+            this[ExternalPlayerPath] = string.Empty;
         }
         #endregion Settings
     }

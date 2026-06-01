@@ -408,7 +408,7 @@ namespace IPTVChannelManager.ViewModels
             if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
             try
             {
-                PlayerWindow.ShowInstance(channel);
+                _windowService.OpenPlayerWindow(channel);
             }
             catch (Exception ex)
             {

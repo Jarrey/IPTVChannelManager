@@ -1,10 +1,11 @@
+using IPTVChannelManager.Common;
+using IPTVChannelManager.Models;
+using IPTVChannelManager.Services;
+using IPTVChannelManager.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using IPTVChannelManager.Common;
-using IPTVChannelManager.Models;
-using IPTVChannelManager.ViewModels;
 
 namespace IPTVChannelManager.Views
 {
@@ -27,7 +28,7 @@ namespace IPTVChannelManager.Views
 
         private EpgGuideWindow(IEnumerable<Channel> channels)
         {
-            _vm = new EpgGuideViewModel();
+            _vm = new EpgGuideViewModel(new WindowService(this));
             DataContext = _vm;
             InitializeComponent();
 

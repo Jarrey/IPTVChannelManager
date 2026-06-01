@@ -103,6 +103,7 @@ namespace IPTVChannelManager.ViewModels
         public const double RowHeight = 44.0;
         public const double TotalWidth = 24 * 60 * PixelsPerMinute; // 2 880
 
+        private readonly IWindowService _windowService;
         private ObservableCollection<EpgGuideRow> _rows = new();
         private double _timeLineLeft;
         private string _nowText = DateTime.Now.ToString("HH:mm:ss");
@@ -118,8 +119,9 @@ namespace IPTVChannelManager.ViewModels
 
         #region Constructor
 
-        public EpgGuideViewModel()
+        public EpgGuideViewModel(IWindowService windowService)
         {
+            _windowService = windowService;
             var marks = new List<TimeMark>(24);
             var halfMarks = new List<TimeMark>(24);
             for (int h = 0; h < 24; h++)
@@ -315,7 +317,7 @@ namespace IPTVChannelManager.ViewModels
             if (channel == null || string.IsNullOrWhiteSpace(channel.Url)) return;
             try
             {
-                PlayerWindow.ShowInstance(channel);
+                _windowService.OpenPlayerWindow(channel);
             }
             catch (Exception ex)
             {
