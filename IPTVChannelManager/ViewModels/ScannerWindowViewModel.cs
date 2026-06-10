@@ -40,12 +40,12 @@ namespace IPTVChannelManager.ViewModels
         #region Fields
 
         private const int MaxLogEntries = 10000;
+        private static bool _libVlcInitialized = false;
+        private static readonly object _libVlcInitLock = new object();
 
         private readonly ObservableCollection<Channel> _existingChannels;
         private readonly IWindowService _windowService;
         private CancellationTokenSource _cts;
-        private SemaphoreSlim _semaphore;
-        private LibVLC _probeLibVlc;
 
         // Thread-safe counters (Interlocked)
         private int _scannedCounter;
@@ -57,7 +57,6 @@ namespace IPTVChannelManager.ViewModels
         private string _scanIpEnd;
         private int _scanPortStart;
         private int _scanPortEnd;
-        private int _maxThreads;
         private int _timeoutSeconds;
 
         // Backing fields for state
@@ -88,7 +87,6 @@ namespace IPTVChannelManager.ViewModels
             _scanIpEnd      = AppSettings.Instance.Get(AppSettings.ScanIpEnd);
             _scanPortStart  = AppSettings.Instance.Get<int>(AppSettings.ScanPortStart);
             _scanPortEnd    = AppSettings.Instance.Get<int>(AppSettings.ScanPortEnd);
-            _maxThreads     = Math.Clamp(AppSettings.Instance.Get<int>(AppSettings.ScanMaxThreads), 1, 50);
             _timeoutSeconds = Math.Clamp(AppSettings.Instance.Get<int>(AppSettings.ScanTimeoutSeconds), 1, 60);
             AppSettings.Instance.SettingChanged += OnSettingChanged;
 
@@ -109,8 +107,14 @@ namespace IPTVChannelManager.ViewModels
             PreviewChannelCommand = new DelegateCommand<Channel>(ch => _windowService.OpenPlayerWindow(ch));
             CloseCommand = _closeCommand;
 
-            Core.Initialize();
-            _probeLibVlc = new LibVLC("--vout=dummy", "--aout=dummy", "--no-stats");
+            lock (_libVlcInitLock)
+            {
+                if (!_libVlcInitialized)
+                {
+                    Core.Initialize();
+                    _libVlcInitialized = true;
+                }
+            }
         }
 
         #endregion
@@ -171,17 +175,6 @@ namespace IPTVChannelManager.ViewModels
         {
             get => _scanPortEnd;
             set { SetProperty(ref _scanPortEnd, value); AppSettings.Instance.Set(AppSettings.ScanPortEnd, value); }
-        }
-
-        public int MaxThreads
-        {
-            get => _maxThreads;
-            set
-            {
-                int clamped = Math.Max(1, Math.Min(value, 50));
-                SetProperty(ref _maxThreads, clamped);
-                AppSettings.Instance.Set(AppSettings.ScanMaxThreads, clamped);
-            }
         }
 
         public int TimeoutSeconds
@@ -284,17 +277,18 @@ namespace IPTVChannelManager.ViewModels
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
-            _semaphore?.Dispose();
-            _semaphore = new SemaphoreSlim(MaxThreads, MaxThreads);
 
-            AddLog($"[{DateTime.Now:HH:mm:ss}] Starting scan: {addresses.Count} addresses, {MaxThreads} threads, timeout {TimeoutSeconds}s", ScanLogLevel.Info);
+            AddLog($"[{DateTime.Now:HH:mm:ss}] Starting scan: {addresses.Count} addresses, timeout {TimeoutSeconds}s", ScanLogLevel.Info);
             AddLog($"[{DateTime.Now:HH:mm:ss}] Mode: {(_useUnicast ? "Unicast" : "Multicast")}   URL pattern: {UrlPatternDisplay}", ScanLogLevel.Info);
             AddLog($"[{DateTime.Now:HH:mm:ss}] Channels in database: {_existingChannels.Count}", ScanLogLevel.Info);
 
             try
             {
-                var tasks = addresses.Select(a => ScanAddressAsync(a.ip, a.port, _cts.Token));
-                await Task.WhenAll(tasks);
+                foreach (var address in addresses)
+                {
+                    if (_cts.IsCancellationRequested) break;
+                    await ScanAddressAsync(address.ip, address.port, _cts.Token);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -368,7 +362,6 @@ namespace IPTVChannelManager.ViewModels
 
         private async Task ScanAddressAsync(string ip, int port, CancellationToken token)
         {
-            await _semaphore.WaitAsync(token);
             try
             {
                 if (token.IsCancellationRequested) return;
@@ -389,7 +382,6 @@ namespace IPTVChannelManager.ViewModels
             }
             finally
             {
-                _semaphore.Release();
                 int scanned = Interlocked.Increment(ref _scannedCounter);
                 int found   = Volatile.Read(ref _foundCounter);
                 Application.Current.Dispatcher.InvokeAsync(() =>
@@ -410,16 +402,23 @@ namespace IPTVChannelManager.ViewModels
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+            LibVLC libVlc = null;
             Media media   = null;
             MediaPlayer player = null;
+
+            EventHandler<EventArgs> onPlaying = (s, e) => tcs.TrySetResult(true);
+            EventHandler<EventArgs> onError = (s, e) => tcs.TrySetResult(false);
+            EventHandler<EventArgs> onEnded = (s, e) => tcs.TrySetResult(false);
+
             try
             {
-                media  = new Media(_probeLibVlc, new Uri(url));
-                player = new MediaPlayer(_probeLibVlc);
+                libVlc = new LibVLC("--vout=dummy", "--aout=dummy", "--no-stats");
+                media  = new Media(libVlc, new Uri(url));
+                player = new MediaPlayer(libVlc);
 
-                player.Playing         += (s, e) => tcs.TrySetResult(true);
-                player.EncounteredError += (s, e) => tcs.TrySetResult(false);
-                player.EndReached      += (s, e) => tcs.TrySetResult(false);
+                player.Playing         += onPlaying;
+                player.EncounteredError += onError;
+                player.EndReached      += onEnded;
 
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
                 cts.CancelAfter(timeoutMs);
@@ -432,9 +431,26 @@ namespace IPTVChannelManager.ViewModels
             catch { return false; }
             finally
             {
-                try { player?.Stop(); } catch { }
-                player?.Dispose();
-                media?.Dispose();
+                var l = libVlc;
+                var p = player;
+                var m = media;
+
+                if (p != null)
+                {
+                    p.Playing -= onPlaying;
+                    p.EncounteredError -= onError;
+                    p.EndReached -= onEnded;
+                }
+
+                // Offload Stop and Dispose to prevent deadlocks and heap corruption
+                // during concurrent teardowns of the native LibVLC objects.
+                _ = Task.Run(() =>
+                {
+                    try { p?.Stop(); } catch { }
+                    try { p?.Dispose(); } catch { }
+                    try { m?.Dispose(); } catch { }
+                    try { l?.Dispose(); } catch { }
+                });
             }
         }
 
@@ -532,8 +548,6 @@ namespace IPTVChannelManager.ViewModels
             AppSettings.Instance.SettingChanged -= OnSettingChanged;
             _cts?.Cancel();
             _cts?.Dispose();
-            _semaphore?.Dispose();
-            _probeLibVlc?.Dispose();
         }
 
         private void AddLog(string message, ScanLogLevel level = ScanLogLevel.Info)

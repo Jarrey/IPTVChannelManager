@@ -25,10 +25,9 @@ namespace IPTVChannelManager
         public const string LastExportDirectory = nameof(LastExportDirectory);
 
         public const string ScanIpStart = nameof(ScanIpStart);
-        public const string ScanIpEnd = nameof(ScanIpEnd);
+            public const string ScanIpEnd = nameof(ScanIpEnd);
         public const string ScanPortStart = nameof(ScanPortStart);
         public const string ScanPortEnd = nameof(ScanPortEnd);
-        public const string ScanMaxThreads = nameof(ScanMaxThreads);
         public const string ScanTimeoutSeconds = nameof(ScanTimeoutSeconds);
         public const string EpgRefreshIntervalHours = nameof(EpgRefreshIntervalHours);
         public const string ExternalPlayerPath = nameof(ExternalPlayerPath);
@@ -46,7 +45,6 @@ namespace IPTVChannelManager
             this[ScanIpEnd] = string.Empty;
             this[ScanPortStart] = 5140;
             this[ScanPortEnd] = 5140;
-            this[ScanMaxThreads] = 5;
             this[ScanTimeoutSeconds] = 5;
             this[EpgRefreshIntervalHours] = 4;
             this[ExternalPlayerPath] = string.Empty;

@@ -135,11 +135,6 @@
                          IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
                          ToolTip="Ending port number"/>
 
-                <TextBlock Text="Threads:" Style="{StaticResource ConfigLabelStyle}"/>
-                <TextBox Width="40" Text="{Binding MaxThreads, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                         IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
-                         ToolTip="Max concurrent scan threads (1-50, default 5)"/>
-
                 <TextBlock Text="Timeout(s):" Style="{StaticResource ConfigLabelStyle}"/>
                 <TextBox Width="40" Text="{Binding TimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                          IsEnabled="{Binding IsNotScanning}" Style="{StaticResource ConfigTextBoxStyle}"
