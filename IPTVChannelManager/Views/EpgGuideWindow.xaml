@@ -14,13 +14,13 @@
 
         <!-- Programme block: normal -->
         <Style x:Key="ProgBlockBorder" TargetType="Border">
-            <Setter Property="Background"     Value="#FF2D313E"/>
-            <Setter Property="BorderBrush"    Value="#FF1A1C24"/>
+            <Setter Property="Background"      Value="#FF2D313E"/>
+            <Setter Property="BorderBrush"     Value="#FF1A1C24"/>
             <Setter Property="BorderThickness" Value="1,0,1,1"/>
-            <Setter Property="CornerRadius"   Value="2"/>
-            <Setter Property="Margin"         Value="0,2,0,2"/>
-            <Setter Property="Padding"        Value="6,2"/>
-            <Setter Property="ToolTip"        Value="{Binding Tooltip}"/>
+            <Setter Property="CornerRadius"    Value="2"/>
+            <Setter Property="Margin"          Value="0,2,0,2"/>
+            <Setter Property="Padding"         Value="6,2"/>
+            <Setter Property="ToolTip"         Value="{Binding Tooltip}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsCurrentlyAiring}" Value="True">
                     <Setter Property="Background"  Value="#FF1E4A2E"/>

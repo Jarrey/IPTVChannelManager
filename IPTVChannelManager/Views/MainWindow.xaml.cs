@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using IPTVChannelManager.Common;
+﻿using IPTVChannelManager.Common;
 using IPTVChannelManager.Services;
 using IPTVChannelManager.ViewModels;
 

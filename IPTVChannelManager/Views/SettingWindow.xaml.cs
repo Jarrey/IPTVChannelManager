@@ -1,7 +1,5 @@
 ﻿using IPTVChannelManager.Common;
 using IPTVChannelManager.ViewModels;
-using Microsoft.Win32;
-using System.Windows;
 
 namespace IPTVChannelManager.Views
 {
